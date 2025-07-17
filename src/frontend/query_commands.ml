@@ -589,22 +589,13 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
           | _ -> None
         in
         let merlin_document_attribute =
-          let merlin_document_attribute_structure_item =
-            List.find_some structure
-              ~f:(fun (structure_item : Parsetree.structure_item) ->
-                match structure_item.pstr_desc with
-                | Pstr_attribute
-                    { attr_name = { txt = "merlin.document"; _ }; _ } -> true
-                | _ -> false)
-          in
-          match merlin_document_attribute_structure_item with
-          | Some
-              { pstr_desc =
-                  Pstr_attribute
-                    ({ attr_name = { txt = "merlin.document"; _ }; _ } as attr);
-                _
-              } -> Some attr
-          | _ -> None
+          List.find_map_opt structure
+            ~f:(fun (structure_item : Parsetree.structure_item) ->
+              match structure_item.pstr_desc with
+              | Pstr_attribute
+                  ({ attr_name = { txt = "merlin.document"; _ }; _ } as attr) ->
+                Some attr
+              | _ -> None)
         in
         let payload =
           match merlin_document_attribute with
