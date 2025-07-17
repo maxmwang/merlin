@@ -530,25 +530,115 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
     let typer = Mpipeline.typer_result pipeline in
     let pos = Mpipeline.get_lexing_pos pipeline pos in
     Refactor_open.get_rewrites ~mode typer pos
-  | Document (patho, pos) ->
+  | Document (patho, pos) -> (
     let typer = Mpipeline.typer_result pipeline in
     let local_defs = Mtyper.get_typedtree typer in
     let config = Mpipeline.final_config pipeline in
     let pos = Mpipeline.get_lexing_pos pipeline pos in
-    let comments = Mpipeline.reader_comments pipeline in
-    let env, _ = Mbrowse.leaf_node (Mtyper.node_at typer pos) in
-    let path =
-      match patho with
-      | Some p -> p
-      | None ->
-        let path = Misc_utils.reconstruct_identifier pipeline pos None in
-        let path = Mreader_lexer.identifier_suffix path in
-        let path = List.map ~f:(fun { Location.txt; _ } -> txt) path in
-        String.concat ~sep:"." path
+    let merlin_attribute_doc_string =
+      match Mpipeline.ppx_parsetree pipeline with
+      | `Interface _ -> None
+      | `Implementation structure -> (
+        let handle_pos_record_expr (pos_record_expr : Parsetree.expression) =
+          match pos_record_expr.pexp_desc with
+          | Pexp_record
+              ( _ :: _ :: _
+                :: (_, { pexp_desc = Pexp_constant (Pconst_integer (i, _)); _ })
+                :: _,
+                _ ) -> int_of_string_opt i
+          | _ -> None
+        in
+        let is_between_pos ~(start_cnum : int) ~end_cnum ~cursor =
+          start_cnum <= cursor && cursor <= end_cnum
+        in
+        let handle_entry (entry : Parsetree.expression) =
+          match entry.pexp_desc with
+          | Pexp_tuple
+              (( _,
+                 { pexp_desc =
+                     Pexp_record
+                       ((_, start_pos_record) :: (_, end_pos_record) :: _, _);
+                   _
+                 } )
+              :: ( _,
+                   { pexp_desc =
+                       Pexp_constant (Pconst_string (documentation, _, _));
+                     _
+                   } )
+              :: _) -> (
+            let start_cnum = handle_pos_record_expr start_pos_record in
+            let end_cnum = handle_pos_record_expr end_pos_record in
+            match (start_cnum, end_cnum) with
+            | Some start_cnum, Some end_cnum ->
+              if is_between_pos ~start_cnum ~end_cnum ~cursor:pos.pos_cnum then
+                Some documentation
+              else None
+            | _ -> None)
+          | _ -> None
+        in
+        let rec find_entry (payload : Parsetree.expression) =
+          match payload.pexp_desc with
+          | Pexp_construct
+              ( { txt = Lident "::"; _ },
+                Some
+                  { pexp_desc = Pexp_tuple ((_, entry) :: (_, rest) :: _); _ }
+              ) -> (
+            match handle_entry entry with
+            | Some documentation -> Some documentation
+            | None -> find_entry rest)
+          | _ -> None
+        in
+        let merlin_document_attribute =
+          let merlin_document_attribute_structure_item =
+            List.find_some structure
+              ~f:(fun (structure_item : Parsetree.structure_item) ->
+                match structure_item.pstr_desc with
+                | Pstr_attribute
+                    { attr_name = { txt = "merlin.document"; _ }; _ } -> true
+                | _ -> false)
+          in
+          match merlin_document_attribute_structure_item with
+          | Some
+              { pstr_desc =
+                  Pstr_attribute
+                    ({ attr_name = { txt = "merlin.document"; _ }; _ } as attr);
+                _
+              } -> Some attr
+          | _ -> None
+        in
+        let payload =
+          match merlin_document_attribute with
+          | Some
+              { attr_payload = PStr ({ pstr_desc = Pstr_eval (expr, _); _ } :: _);
+                _
+              } -> Some expr
+          | _ -> None
+        in
+        match payload with
+        | Some payload -> (
+          match find_entry payload with
+          | Some doc -> Some doc
+          | _ -> None)
+        | None -> None)
     in
-    if path = "" then `Invalid_context
-    else
-      Locate.get_doc ~config ~env ~local_defs ~comments ~pos (`User_input path)
+    match merlin_attribute_doc_string with
+    | Some doc_string -> `Found doc_string
+    | None ->
+      let comments = Mpipeline.reader_comments pipeline in
+      let env, _ = Mbrowse.leaf_node (Mtyper.node_at typer pos) in
+      let path =
+        match patho with
+        | Some p -> p
+        | None ->
+          let path = Misc_utils.reconstruct_identifier pipeline pos None in
+          let path = Mreader_lexer.identifier_suffix path in
+          let path = List.map ~f:(fun { Location.txt; _ } -> txt) path in
+          String.concat ~sep:"." path
+      in
+      if path = "" then `Invalid_context
+      else
+        Locate.get_doc ~config ~env ~local_defs ~comments ~pos
+          (`User_input path))
   | Syntax_document pos -> (
     let typer = Mpipeline.typer_result pipeline in
     let pos = Mpipeline.get_lexing_pos pipeline pos in
