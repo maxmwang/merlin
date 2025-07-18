@@ -488,6 +488,51 @@ module Utils = struct
     | CMS _ | CMSI _ -> Mconfig.cmt_path config
 end
 
+module Merlin_attribute = struct
+  let handle_pos_record_expr (pos_record_expr : Parsetree.expression) =
+    match pos_record_expr.pexp_desc with
+    | Pexp_record
+        ( _ :: _ :: _
+          :: (_, { pexp_desc = Pexp_constant (Pconst_integer (i, _)); _ })
+          :: _,
+          _ ) -> int_of_string_opt i
+    | _ -> None
+  let is_between_pos ~(start_cnum : int) ~end_cnum ~cursor =
+    start_cnum <= cursor && cursor <= end_cnum
+  let handle_entry (entry : Parsetree.expression) cursor_cnum =
+    match entry.pexp_desc with
+    | Pexp_tuple
+        (( _,
+           { pexp_desc =
+               Pexp_record ((_, start_pos_record) :: (_, end_pos_record) :: _, _);
+             _
+           } )
+        :: ( _,
+             { pexp_desc = Pexp_constant (Pconst_string (documentation, _, _));
+               _
+             } )
+        :: _) -> (
+      let start_cnum = handle_pos_record_expr start_pos_record in
+      let end_cnum = handle_pos_record_expr end_pos_record in
+      match (start_cnum, end_cnum) with
+      | Some start_cnum, Some end_cnum ->
+        if is_between_pos ~start_cnum ~end_cnum ~cursor:cursor_cnum then
+          Some documentation
+        else None
+      | _ -> None)
+    | _ -> None
+  let rec find_entry (payload : Parsetree.expression) cursor_cnum =
+    match payload.pexp_desc with
+    | Pexp_construct
+        ( { txt = Lident "::"; _ },
+          Some { pexp_desc = Pexp_tuple ((_, entry) :: (_, rest) :: _); _ } )
+      -> (
+      match handle_entry entry cursor_cnum with
+      | Some documentation -> Some documentation
+      | None -> find_entry rest cursor_cnum)
+    | _ -> None
+end
+
 let move_to filename artifact =
   let digest =
     (* [None] only for packs, and we wouldn't have a trie if the cmt was for a
