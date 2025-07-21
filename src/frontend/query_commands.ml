@@ -562,11 +562,10 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
             | Error _ -> None)
       in
       let entry =
-        Option.bind document_entries ~f:(fun document_entries ->
-            Ppx_document.find document_entries ~cursor:pos)
+        Option.bind document_entries ~f:(Ppx_document.find ~cursor:pos)
       in
       Option.map entry ~f:(fun (entry : Ppx_document.Entry.t) ->
-          entry.documentation)
+          Ppx_document.Entry.documentation entry)
     in
     match from_document_attribute with
     | Some doc_string -> `Found doc_string
