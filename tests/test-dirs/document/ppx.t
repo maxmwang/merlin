@@ -28,6 +28,19 @@
   > [@@@do_nothing]
   > EOF
 
+  $ cat >test.mli <<EOF
+  > [@@@merlin.document
+  >   [({
+  >       loc_start =
+  >         { pos_fname = "test.mli"; pos_lnum = 9; pos_bol = 298; pos_cnum = 341 };
+  >       loc_end =
+  >         { pos_fname = "test.mli"; pos_lnum = 9; pos_bol = 298; pos_cnum = 349 };
+  >       loc_ghost = false
+  >     }, "@identity does not expand into anything")]]
+  > val f : int -> int -> int -> int -> int [@@identity]
+  > EOF
+
+
 Document @add_one
 
   $ $MERLIN single document -position 25:13 -filename ./test.ml < ./test.ml | jq .value
@@ -42,3 +55,8 @@ Document %swap
 
   $ $MERLIN single document -position 24:10 -filename ./test.ml < ./test.ml | jq .value
   "%swap swaps the first two arguments of a function call"
+
+Document @@identity
+
+  $ $MERLIN single document -position 9:43 -filename ./test.mli < ./test.mli | jq .value
+  "@identity does not expand into anything"
