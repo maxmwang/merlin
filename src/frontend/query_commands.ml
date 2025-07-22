@@ -531,45 +531,19 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
     let pos = Mpipeline.get_lexing_pos pipeline pos in
     Refactor_open.get_rewrites ~mode typer pos
   | Document (patho, pos) -> (
-    let typer = Mpipeline.typer_result pipeline in
-    let local_defs = Mtyper.get_typedtree typer in
-    let config = Mpipeline.final_config pipeline in
     let pos = Mpipeline.get_lexing_pos pipeline pos in
-    let from_document_attribute =
-      let attribute =
-        match Mpipeline.ppx_parsetree pipeline with
-        | `Interface signature ->
-          List.find_map_opt signature.psg_items
-            ~f:(fun (signature_item : Parsetree.signature_item) ->
-              match signature_item.psig_desc with
-              | Psig_attribute
-                  ({ attr_name = { txt = "merlin.document"; _ }; _ } as attr) ->
-                Some attr
-              | _ -> None)
-        | `Implementation structure ->
-          List.find_map_opt structure
-            ~f:(fun (structure_item : Parsetree.structure_item) ->
-              match structure_item.pstr_desc with
-              | Pstr_attribute
-                  ({ attr_name = { txt = "merlin.document"; _ }; _ } as attr) ->
-                Some attr
-              | _ -> None)
-      in
-      let document_entries =
-        Option.bind attribute ~f:(fun attribute ->
-            match Ppx_document.of_attribute attribute with
-            | Ok entries -> Some entries
-            | Error _ -> None)
-      in
-      let entry =
-        Option.bind document_entries ~f:(Ppx_document.find ~cursor:pos)
-      in
-      Option.map entry ~f:(fun (entry : Ppx_document.Entry.t) ->
-          Ppx_document.Entry.documentation entry)
+    let from_document_override_attribute =
+      pipeline |> Override_document.get_overrides
+      |> Override_document.find ~cursor:pos
+      |> Option.map ~f:(fun (override : Override_document.Override.t) ->
+             override.doc)
     in
-    match from_document_attribute with
+    match from_document_override_attribute with
     | Some doc_string -> `Found doc_string
     | None ->
+      let typer = Mpipeline.typer_result pipeline in
+      let local_defs = Mtyper.get_typedtree typer in
+      let config = Mpipeline.final_config pipeline in
       let comments = Mpipeline.reader_comments pipeline in
       let env, _ = Mbrowse.leaf_node (Mtyper.node_at typer pos) in
       let path =
