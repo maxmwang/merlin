@@ -60,7 +60,7 @@ Document @@identity
   $ $MERLIN single document -position 1:45 -filename ./basic.mli < ./basic.mli | jq .value
   "@identity does not expand into anything"
 
-Multiple @@@merlin.document attributes
+Multiple @@@merlin.document attributes should be merged and both usable
 
   $ cat >multiple-attribute.ml <<EOF
   > let f a b c d = a - b + c - d
@@ -91,7 +91,7 @@ Multiple @@@merlin.document attributes
   $ $MERLIN single document -position 3:13 -filename ./multiple-attribute.ml < ./multiple-attribute.ml | jq .value
   "@add_one expands expressions with a '+ 1'"
 
-Attribute is located at start of file instead of end
+Attribute location should not affect functionality. 
 
   $ cat >attribute-at-top.ml <<EOF
   > [@@@merlin.document
@@ -110,7 +110,7 @@ Attribute is located at start of file instead of end
   $ $MERLIN single document -position 11:13 -filename ./attribute-at-top.ml < ./attribute-at-top.ml | jq .value
   "@add_one expands expressions with a '+ 1'"
 
-Document non-PPX
+Existing document behavior of non-PPXs should not be affected. 
 
   $ cat >non-ppx.ml <<EOF
   > (** [x] is a variable *)
@@ -150,18 +150,11 @@ FIXME: Document the payload of an attribute. We expect "f is a test function"
   $ $MERLIN single document -position 4:15 -filename ./ppx-payload.ml < ./ppx-payload.ml | jq .value
   "Not in environment 'f'"
 
-merlin.document attribute's payload has invalid structure. below, location field [pos_bol] is missing
+merlin.document attribute's payload has invalid structure. below, the payload is missing
 
   $ cat >invalid-payload.ml <<EOF
   > let _ = (0 [@add_one]) + 2
-  > [@@@merlin.document
-  >   [({
-  >       loc_start =
-  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_cnum = 13 };
-  >       loc_end =
-  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_cnum = 20 };
-  >       loc_ghost = false
-  >     }, "@add_one expands expressions with a '+ 1'")]]
+  > [@@@merlin.document]
   > EOF
 
   $ $MERLIN single document -position 1:13 -filename ./invalid-payload.ml < ./invalid-payload.ml | jq .value
