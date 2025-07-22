@@ -18,6 +18,7 @@
         ...
       ]
     |}
+    Each individual element of the list is stored as an [Override.t].
 *)
 
 module Override : sig

@@ -36,8 +36,8 @@ module Override = struct
       | _ -> error_failed_to_parse_position_field_values)
     | _ -> error_unexpected_position_expression_structure
 
-  let of_expression (expr : Parsetree.expression) =
-    match expr.pexp_desc with
+  let of_expression ({ pexp_desc; _ } : Parsetree.expression) =
+    match pexp_desc with
     | Pexp_tuple
         [ ( None,
             { pexp_desc =
@@ -76,8 +76,8 @@ end
 
 type t = Override.t list
 
-let rec of_payload (payload : Parsetree.expression) =
-  match payload.pexp_desc with
+let rec of_payload ({ pexp_desc; _ } : Parsetree.expression) =
+  match pexp_desc with
   | Pexp_construct
       ( { txt = Lident "::"; _ },
         Some { pexp_desc = Pexp_tuple [ (None, override); (None, rest) ]; _ } )
@@ -91,15 +91,15 @@ let rec of_payload (payload : Parsetree.expression) =
 
 let of_attribute (attribute : Parsetree.attribute) =
   match attribute with
-  | { attr_payload = PStr ({ pstr_desc = Pstr_eval (expr, _); _ } :: []); _ } ->
+  | { attr_payload = PStr [ { pstr_desc = Pstr_eval (expr, _); _ } ]; _ } ->
     Ok (of_payload expr)
   | _ -> error_unexpected_merlin_document_attribute_structure
 
-let get_overrides (pipeline : Mpipeline.t) =
-  let attribute =
+let get_overrides pipeline =
+  let attributes =
     match Mpipeline.ppx_parsetree pipeline with
     | `Interface signature ->
-      List.find_map_opt signature.psg_items
+      List.filter_map signature.psg_items
         ~f:(fun (signature_item : Parsetree.signature_item) ->
           match signature_item.psig_desc with
           | Psig_attribute
@@ -107,7 +107,7 @@ let get_overrides (pipeline : Mpipeline.t) =
             Some attr
           | _ -> None)
     | `Implementation structure ->
-      List.find_map_opt structure
+      List.filter_map structure
         ~f:(fun (structure_item : Parsetree.structure_item) ->
           match structure_item.pstr_desc with
           | Pstr_attribute
@@ -115,13 +115,19 @@ let get_overrides (pipeline : Mpipeline.t) =
             Some attr
           | _ -> None)
   in
-  match attribute with
-  | None -> []
-  | Some attribute -> (
-    match of_attribute attribute with
-    | Ok overrides -> overrides
-    | Error _ as err ->
-      log ~title:"get_overrides" "%s" (Result.get_error err);
-      [])
+  attributes
+  |> List.map ~f:(fun attribute ->
+         match of_attribute attribute with
+         | Ok overrides -> overrides
+         | Error _ as err ->
+           log ~title:"get_overrides" "%s" (Result.get_error err);
+           [])
+  |> List.flatten
 
-let find t ~cursor = List.find_opt ~f:(Override.is_target_override ~cursor) t
+let find t ~cursor =
+  match List.find_all ~f:(Override.is_target_override ~cursor) t with
+  | [] -> None
+  | override :: [] -> Some override
+  | override :: _ :: _ ->
+    log ~title:"find" "found multiple target overrides, using first target";
+    Some override
