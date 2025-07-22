@@ -110,7 +110,7 @@ Attribute location should not affect functionality.
   $ $MERLIN single document -position 11:13 -filename ./attribute-at-top.ml < ./attribute-at-top.ml | jq .value
   "@add_one expands expressions with a '+ 1'"
 
-Existing document behavior of non-PPXs should not be affected. 
+Existing document behavior of non-PPXsshould not be affected. 
 
   $ cat >non-ppx.ml <<EOF
   > (** [x] is a variable *)

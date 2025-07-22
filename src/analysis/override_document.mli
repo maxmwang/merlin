@@ -1,4 +1,5 @@
-(** Decodes the [@@@merlin.document] attribute into a list.
+(** Decodes the [@@@merlin.document] attribute into a list and provides [find] to iterate
+    through.
 
     The [@@@merlin.document] attribute is a list of tuples pairing a [Location.t] with
     a documentation string. This attribute can be used to override merlin's [Document]
@@ -29,7 +30,9 @@ end
 type t = Override.t list
 
 (** Constructs a [t] from a [Mpipeline.t]. An error is returned on an unexpected
-    AST node structures and parsing errors. *)
+    AST node structures and parsing errors.
+
+    If there are multiple [@@@merlin.document] attributes, they will be merged. *)
 val get_overrides : Mpipeline.t -> t
 
 (** Finds the first [Override.t] that [cursor] is enclosed in. *)
