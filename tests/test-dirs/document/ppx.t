@@ -124,6 +124,7 @@ Existing document behavior of non-PPXs should not be affected.
   > let x = 0
   > 
   > let _ = (x [@add_one]) + 2
+  > let x = x + 1
   > [@@@merlin.document
   >   [({
   >       loc_start =
@@ -137,25 +138,8 @@ Existing document behavior of non-PPXs should not be affected.
   $ test_merlin_document "2:4" "./non-ppx.ml"
   [x] is a variable
 
-FIXME: Document the payload of an attribute. We expect "f is a test function"
-
-  $ cat >ppx-payload.ml <<EOF
-  > (** f is a test function *)
-  > let f a b c d = a - b + c - d
-  > 
-  > let _ = [%swap f 1 2] 3 4
-  > [@@@merlin.document
-  >   [({
-  >       loc_start =
-  >         { pos_fname = "test.ml"; pos_lnum = 4; pos_bol = 59; pos_cnum = 69 };
-  >       loc_end =
-  >         { pos_fname = "test.ml"; pos_lnum = 4; pos_bol = 59; pos_cnum = 73 };
-  >       loc_ghost = false
-  >     }, "%swap swaps the first two arguments of a function call")]]
-  > EOF
-
-  $ test_merlin_document "4:15" "./ppx-payload.ml"
-  Not in environment 'f'
+  $ test_merlin_document "5:8" "./non-ppx.ml"
+  [x] is a variable
 
 merlin.document attribute's payload has invalid structure. below, the payload is missing
 
@@ -190,3 +174,32 @@ merlin.document attribute's payload contains two target overrides. the first tar
 
   $ test_merlin_document "1:13" "./invalid-payload.ml"
   first target document override
+
+Document nested PPXs
+
+  $ cat >nested-ppx.ml <<EOF
+  > let f a b c d = a - b + c - d
+  > let _ = [%swap [%swap f 1 2] 3 4]
+  > 
+  > [@@@merlin.document
+  >   [({
+  >      loc_start =
+  >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 40 };
+  >      loc_end =
+  >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 44 };
+  >      loc_ghost = false
+  >    }, "%swap swaps the first two arguments of a function call");
+  >  ({
+  >      loc_start =
+  >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 47 };
+  >      loc_end =
+  >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 51 };
+  >      loc_ghost = false
+  >    }, "%swap swaps the first two arguments of a function call")]]
+  > EOF
+
+  $ test_merlin_document "2:10" "./nested-ppx.ml"
+  %swap swaps the first two arguments of a function call
+
+  $ test_merlin_document "2:17" "./nested-ppx.ml"
+  %swap swaps the first two arguments of a function call
