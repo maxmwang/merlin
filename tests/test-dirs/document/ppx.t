@@ -208,6 +208,7 @@ Document payload of a PPX
 
   $ cat >ppx-payload.ml <<EOF
   > let _ = [%swap f 1 2] 3 4
+  > let _ = [%swap (*!*)]
   > [@@@merlin.document
   >   [({
   >       loc_start =
@@ -222,11 +223,35 @@ Document payload of a PPX
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 16 };
   >       loc_ghost = false
-  >     }, "f can be a %swap-specific argument")]]
+  >     }, "f can be a %swap-specific argument");
+  >   ({
+  >       loc_start =
+  >         { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 26; pos_cnum = 43 };
+  >       loc_end =
+  >         { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 26; pos_cnum = 44 };
+  >       loc_ghost = false
+  >     }, "weird garbage can also be documented")]]
   > EOF
 
   $ test_merlin_document "1:10" "./ppx-payload.ml"
   %swap swaps the first two arguments of a function call
 
-  $ test_merlin_document "1:15" "./ppx-payload.ml"
-  f can be a %swap-specific argument
+  $ test_merlin_document "2:18" "./ppx-payload.ml"
+  weird garbage can also be documented
+
+Document an invalid position
+
+  $ cat >invalid-position.ml <<EOF
+  > let _ = [%swap f 1 2] 3 4
+  > [@@@merlin.document
+  >   [({
+  >       loc_start =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 70 };
+  >       loc_end =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 74 };
+  >       loc_ghost = false
+  >     }, "this is a document override at an invalid position")]]
+  > EOF
+
+  $ test_merlin_document "1:70" "./invalid-position.ml"
+  this is a document override at an invalid position
