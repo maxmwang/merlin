@@ -1,3 +1,10 @@
+  $ function test_merlin_document {
+  > local position="$1"
+  > local file="$2"
+  > 
+  > $MERLIN single document -position "$position" -filename "$file" < "$file" | jq -r .value
+  > }
+
   $ cat >basic.ml <<EOF
   > let f a b c d = a - b + c - d
   > let _ = [%swap f 1 2] 3 4
@@ -42,23 +49,23 @@
 
 Document %swap
 
-  $ $MERLIN single document -position 2:10 -filename ./basic.ml < ./basic.ml | jq .value
-  "%swap swaps the first two arguments of a function call"
+  $ test_merlin_document "2:10" "./basic.ml"
+  %swap swaps the first two arguments of a function call
 
 Document @add_one
 
-  $ $MERLIN single document -position 3:13 -filename ./basic.ml < ./basic.ml | jq .value
-  "@add_one expands expressions with a '+ 1'"
+  $ test_merlin_document "3:13" "./basic.ml"
+  @add_one expands expressions with a '+ 1'
 
 Document @@@do_nothing
 
-  $ $MERLIN single document -position 5:4 -filename ./basic.ml < ./basic.ml | jq .value
-  "@@@do_nothing expands into nothing"
+  $ test_merlin_document "5:4" "./basic.ml"
+  @@@do_nothing expands into nothing
 
 Document @@identity
 
-  $ $MERLIN single document -position 1:45 -filename ./basic.mli < ./basic.mli | jq .value
-  "@identity does not expand into anything"
+  $ test_merlin_document "1:45" "./basic.mli"
+  @identity does not expand into anything
 
 Multiple @@@merlin.document attributes should be merged and both usable
 
@@ -85,11 +92,11 @@ Multiple @@@merlin.document attributes should be merged and both usable
   >    }, "%swap swaps the first two arguments of a function call")]]
   > EOF
 
-  $ $MERLIN single document -position 2:10 -filename ./multiple-attribute.ml < ./multiple-attribute.ml | jq .value
-  "%swap swaps the first two arguments of a function call"
+  $ test_merlin_document "2:10" "./multiple-attribute.ml"
+  %swap swaps the first two arguments of a function call
 
-  $ $MERLIN single document -position 3:13 -filename ./multiple-attribute.ml < ./multiple-attribute.ml | jq .value
-  "@add_one expands expressions with a '+ 1'"
+  $ test_merlin_document "3:13" "./multiple-attribute.ml"
+  @add_one expands expressions with a '+ 1'
 
 Attribute location should not affect functionality. 
 
@@ -107,10 +114,10 @@ Attribute location should not affect functionality.
   > let _ = (0 [@add_one]) + 2
   > EOF
 
-  $ $MERLIN single document -position 11:13 -filename ./attribute-at-top.ml < ./attribute-at-top.ml | jq .value
-  "@add_one expands expressions with a '+ 1'"
+  $ test_merlin_document "11:13" "./attribute-at-top.ml"
+  @add_one expands expressions with a '+ 1'
 
-Existing document behavior of non-PPXsshould not be affected. 
+Existing document behavior of non-PPXs should not be affected. 
 
   $ cat >non-ppx.ml <<EOF
   > (** [x] is a variable *)
@@ -127,8 +134,8 @@ Existing document behavior of non-PPXsshould not be affected.
   >     }, "@add_one expands expressions with a '+ 1'")]]
   > EOF
 
-  $ $MERLIN single document -position 2:4 -filename ./non-ppx.ml < ./non-ppx.ml | jq .value
-  "[x] is a variable"
+  $ test_merlin_document "2:4" "./non-ppx.ml"
+  [x] is a variable
 
 FIXME: Document the payload of an attribute. We expect "f is a test function"
 
@@ -147,8 +154,8 @@ FIXME: Document the payload of an attribute. We expect "f is a test function"
   >     }, "%swap swaps the first two arguments of a function call")]]
   > EOF
 
-  $ $MERLIN single document -position 4:15 -filename ./ppx-payload.ml < ./ppx-payload.ml | jq .value
-  "Not in environment 'f'"
+  $ test_merlin_document "4:15" "./ppx-payload.ml"
+  Not in environment 'f'
 
 merlin.document attribute's payload has invalid structure. below, the payload is missing
 
@@ -157,8 +164,8 @@ merlin.document attribute's payload has invalid structure. below, the payload is
   > [@@@merlin.document]
   > EOF
 
-  $ $MERLIN single document -position 1:13 -filename ./invalid-payload.ml < ./invalid-payload.ml | jq .value
-  "Not in environment 'add_one'"
+  $ test_merlin_document "1:13" "./invalid-payload.ml"
+  Not in environment 'add_one'
 
 merlin.document attribute's payload contains two target overrides. the first target should be returned
 
@@ -181,5 +188,5 @@ merlin.document attribute's payload contains two target overrides. the first tar
   >    }, "second target document override")]]
   > EOF
 
-  $ $MERLIN single document -position 1:13 -filename ./invalid-payload.ml < ./invalid-payload.ml | jq .value
-  "first target document override"
+  $ test_merlin_document "1:13" "./invalid-payload.ml"
+  first target document override

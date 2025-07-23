@@ -84,8 +84,8 @@ let rec of_payload ({ pexp_desc; _ } : Parsetree.expression) =
     -> (
     match Override.of_expression override with
     | Ok override -> override :: of_payload rest
-    | Error _ as err ->
-      log ~title:"of_payload" "%s" (Result.get_error err);
+    | Error err ->
+      log ~title:"of_payload" "%s" err;
       of_payload rest)
   | _ -> []
 
@@ -115,14 +115,12 @@ let get_overrides pipeline =
             Some attr
           | _ -> None)
   in
-  attributes
-  |> List.map ~f:(fun attribute ->
-         match of_attribute attribute with
-         | Ok overrides -> overrides
-         | Error _ as err ->
-           log ~title:"get_overrides" "%s" (Result.get_error err);
-           [])
-  |> List.flatten
+  List.concat_map attributes ~f:(fun attribute ->
+      match of_attribute attribute with
+      | Ok overrides -> overrides
+      | Error err ->
+        log ~title:"get_overrides" "%s" err;
+        [])
 
 let find t ~cursor =
   match List.find_all ~f:(Override.is_target_override ~cursor) t with

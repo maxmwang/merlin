@@ -27,7 +27,7 @@ module Override : sig
   type t = { loc : Location.t; doc : string }
 end
 
-type t = Override.t list
+type t
 
 (** Constructs a [t] from a [Mpipeline.t]. An error is returned on an unexpected
     AST node structures and parsing errors.
