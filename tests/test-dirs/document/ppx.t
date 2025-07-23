@@ -203,3 +203,30 @@ Document nested PPXs
 
   $ test_merlin_document "2:17" "./nested-ppx.ml"
   %swap swaps the first two arguments of a function call
+
+Document payload of a PPX
+
+  $ cat >ppx-payload.ml <<EOF
+  > let _ = [%swap f 1 2] 3 4
+  > [@@@merlin.document
+  >   [({
+  >       loc_start =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 10 };
+  >       loc_end =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 14 };
+  >       loc_ghost = false
+  >     }, "%swap swaps the first two arguments of a function call");
+  >   ({
+  >       loc_start =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 15 };
+  >       loc_end =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 16 };
+  >       loc_ghost = false
+  >     }, "f can be a %swap-specific argument")]]
+  > EOF
+
+  $ test_merlin_document "1:10" "./ppx-payload.ml"
+  %swap swaps the first two arguments of a function call
+
+  $ test_merlin_document "1:15" "./ppx-payload.ml"
+  f can be a %swap-specific argument
