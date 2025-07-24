@@ -24,7 +24,9 @@
 *)
 
 module Override : sig
-  type t = { loc : Location.t; doc : string }
+  type t
+
+  val doc : t -> string
 end
 
 type t

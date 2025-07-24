@@ -72,6 +72,8 @@ module Override = struct
   let is_target_override t ~cursor =
     Lexing.compare_pos cursor t.loc.loc_start >= 0
     && Lexing.compare_pos cursor t.loc.loc_end <= 0
+
+  let doc t = t.doc
 end
 
 type t = Override.t list

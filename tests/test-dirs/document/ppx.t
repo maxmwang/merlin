@@ -236,6 +236,9 @@ Document payload of a PPX
   $ test_merlin_document "1:10" "./ppx-payload.ml"
   %swap swaps the first two arguments of a function call
 
+  $ test_merlin_document "1:15" "./ppx-payload.ml"
+  f can be a %swap-specific argument
+
   $ test_merlin_document "2:18" "./ppx-payload.ml"
   weird garbage can also be documented
 

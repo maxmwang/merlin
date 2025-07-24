@@ -535,8 +535,7 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
     let from_document_override_attribute =
       pipeline |> Override_document.get_overrides
       |> Override_document.find ~cursor:pos
-      |> Option.map ~f:(fun (override : Override_document.Override.t) ->
-             override.doc)
+      |> Option.map ~f:Override_document.Override.doc
     in
     match from_document_override_attribute with
     | Some doc_string -> `Found doc_string
