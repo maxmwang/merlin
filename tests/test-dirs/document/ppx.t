@@ -275,3 +275,31 @@ Document a floating attribute
 
   $ test_merlin_document "1:4" "./floating_attribute.ml"
   @@@test_floating_attribute is a test floating attribute
+
+Document an attribute in a extension's payload
+
+  $ cat >attribute-as-payload.ml <<EOF
+  > let _ = [%swap f (1 [@add_one]) 2] 3 4
+  > [@@@merlin.document
+  >   [({
+  >       loc_start =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 10 };
+  >       loc_end =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 14 };
+  >       loc_ghost = false
+  >     }, "%swap swaps the first two arguments of a function call");
+  >   ({
+  >       loc_start =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 22 };
+  >       loc_end =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 29 };
+  >       loc_ghost = false
+  >     }, "@add_one expands expressions with a '+ 1'")]]
+  > EOF
+
+  $ test_merlin_document "1:10" "./attribute-as-payload.ml"
+  %swap swaps the first two arguments of a function call
+ 
+  $ test_merlin_document "1:22" "./attribute-as-payload.ml"
+  @add_one expands expressions with a '+ 1'
+
