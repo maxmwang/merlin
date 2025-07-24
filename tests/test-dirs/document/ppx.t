@@ -12,39 +12,43 @@
   > 
   > [@@@do_nothing]
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "basic.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 69 };
   >       loc_end =
   >         { pos_fname = "basic.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 76 };
   >       loc_ghost = false
-  >     }, "@add_one expands expressions with a '+ 1'");
-  >   ({
+  >     }; document = "@add_one expands expressions with a '+ 1'";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }};
+  >   { location = {
   >      loc_start =
   >        { pos_fname = "basic.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 88 };
   >      loc_end =
   >        { pos_fname = "basic.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 98 };
   >      loc_ghost = false
-  >    }, "@@@do_nothing expands into nothing");
-  >   ({
+  >    }; document = "@@@do_nothing expands into nothing";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }};
+  >   { location = {
   >      loc_start =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 40 };
   >      loc_end =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 44 };
   >      loc_ghost = false
-  >    }, "%swap swaps the first two arguments of a function call")]]
+  >    }; document = "%swap swaps the first two arguments of a function call";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ cat >basic.mli <<EOF
   > val f : int -> int -> int -> int -> int [@@identity]
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "basic.mli"; pos_lnum = 1; pos_bol = 0; pos_cnum = 43 };
   >       loc_end =
   >         { pos_fname = "basic.mli"; pos_lnum = 1; pos_bol = 0; pos_cnum = 51 };
   >       loc_ghost = false
-  >     }, "@identity does not expand into anything")]]
+  >     }; document = "@identity does not expand into anything";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
 Document %swap
@@ -75,21 +79,23 @@ Multiple @@@merlin.document attributes should be merged and both usable
   > let _ = (0 [@add_one]) + 2
   > 
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "basic.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 69 };
   >       loc_end =
   >         { pos_fname = "basic.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 76 };
   >       loc_ghost = false
-  >     }, "@add_one expands expressions with a '+ 1'")]]
+  >     }; document = "@add_one expands expressions with a '+ 1'";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >      loc_start =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 40 };
   >      loc_end =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 44 };
   >      loc_ghost = false
-  >    }, "%swap swaps the first two arguments of a function call")]]
+  >    }; document = "%swap swaps the first two arguments of a function call";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "2:10" "./multiple-attribute.ml"
@@ -102,19 +108,18 @@ Attribute location should not affect functionality.
 
   $ cat >attribute-at-top.ml <<EOF
   > [@@@merlin.document
-  > [({
+  > [{ location = {
   >     loc_start =
-  >       { pos_fname = "test.ml"; pos_lnum = 11; pos_bol = 314; pos_cnum = 327
-  >       };
+  >       { pos_fname = "test.ml"; pos_lnum = 12; pos_bol = 393; pos_cnum = 406 };
   >     loc_end =
-  >       { pos_fname = "test.ml"; pos_lnum = 11; pos_bol = 314; pos_cnum = 334
-  >       };
+  >       { pos_fname = "test.ml"; pos_lnum = 12; pos_bol = 393; pos_cnum = 414 };
   >     loc_ghost = false
-  >   }, "@add_one expands expressions with a '+ 1'")]]
+  >   }; document = "@add_one expands expressions with a '+ 1'";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > let _ = (0 [@add_one]) + 2
   > EOF
 
-  $ test_merlin_document "11:13" "./attribute-at-top.ml"
+  $ test_merlin_document "12:13" "./attribute-at-top.ml"
   @add_one expands expressions with a '+ 1'
 
 Existing document behavior of non-PPXs should not be affected. 
@@ -126,13 +131,14 @@ Existing document behavior of non-PPXs should not be affected.
   > let _ = (x [@add_one]) + 2
   > let x = x + 1
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 4; pos_bol = 36; pos_cnum = 49 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 4; pos_bol = 36; pos_cnum = 56 };
   >       loc_ghost = false
-  >     }, "@add_one expands expressions with a '+ 1'")]]
+  >     }; document = "@add_one expands expressions with a '+ 1'";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "2:4" "./non-ppx.ml"
@@ -156,20 +162,22 @@ merlin.document attribute's payload contains two target overrides. the first tar
   $ cat >invalid-payload.ml <<EOF
   > let _ = (0 [@add_one]) + 2
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 13 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 20 };
   >       loc_ghost = false
-  >     }, "first target document override");
-  >   ({
+  >     }; document = "first target document override";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }};
+  >   { location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 13 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 20 };
   >      loc_ghost = false
-  >    }, "second target document override")]]
+  >    }; document = "second target document override";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "1:13" "./invalid-payload.ml"
@@ -182,20 +190,22 @@ Document nested PPXs
   > let _ = [%swap [%swap f 1 2] 3 4]
   > 
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >      loc_start =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 40 };
   >      loc_end =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 44 };
   >      loc_ghost = false
-  >    }, "%swap swaps the first two arguments of a function call");
-  >  ({
+  >    }; document = "%swap swaps the first two arguments of a function call";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }};
+  >  { location = {
   >      loc_start =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 47 };
   >      loc_end =
   >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 51 };
   >      loc_ghost = false
-  >    }, "%swap swaps the first two arguments of a function call")]]
+  >    }; document = "%swap swaps the first two arguments of a function call";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "2:10" "./nested-ppx.ml"
@@ -210,27 +220,30 @@ Document payload of a PPX
   > let _ = [%swap f 1 2] 3 4
   > let _ = [%swap (*!*)]
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 10 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 14 };
   >       loc_ghost = false
-  >     }, "%swap swaps the first two arguments of a function call");
-  >   ({
+  >     }; document = "%swap swaps the first two arguments of a function call";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }};
+  >   { location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 15 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 16 };
   >       loc_ghost = false
-  >     }, "f can be a %swap-specific argument");
-  >   ({
+  >     }; document = "f can be a %swap-specific argument";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }};
+  >   { location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 26; pos_cnum = 43 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 26; pos_cnum = 44 };
   >       loc_ghost = false
-  >     }, "weird garbage can also be documented")]]
+  >     }; document = "weird garbage can also be documented";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "1:10" "./ppx-payload.ml"
@@ -247,13 +260,14 @@ Document an invalid position
   $ cat >invalid-position.ml <<EOF
   > let _ = [%swap f 1 2] 3 4
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 70 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 74 };
   >       loc_ghost = false
-  >     }, "this is a document override at an invalid position")]]
+  >     }; document = "this is a document override at an invalid position";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "1:70" "./invalid-position.ml"
@@ -264,13 +278,14 @@ Document a floating attribute
   $ cat >floating_attribute.ml <<EOF
   > [@@@test_floating_attribute]
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 4 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 27 };
   >       loc_ghost = false
-  >     }, "@@@test_floating_attribute is a test floating attribute")]]
+  >     }; document = "@@@test_floating_attribute is a test floating attribute";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "1:4" "./floating_attribute.ml"
@@ -281,20 +296,22 @@ Document an attribute in a extension's payload
   $ cat >attribute-as-payload.ml <<EOF
   > let _ = [%swap f (1 [@add_one]) 2] 3 4
   > [@@@merlin.document
-  >   [({
+  >   [{ location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 10 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 14 };
   >       loc_ghost = false
-  >     }, "%swap swaps the first two arguments of a function call");
-  >   ({
+  >     }; document = "%swap swaps the first two arguments of a function call";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }};
+  >   { location = {
   >       loc_start =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 22 };
   >       loc_end =
   >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 29 };
   >       loc_ghost = false
-  >     }, "@add_one expands expressions with a '+ 1'")]]
+  >     }; document = "@add_one expands expressions with a '+ 1'";
+  >        locate = { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 1 }}]]
   > EOF
 
   $ test_merlin_document "1:10" "./attribute-as-payload.ml"
@@ -302,4 +319,3 @@ Document an attribute in a extension's payload
  
   $ test_merlin_document "1:22" "./attribute-as-payload.ml"
   @add_one expands expressions with a '+ 1'
-

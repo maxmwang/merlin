@@ -12,7 +12,7 @@ let error_unexpected_merlin_document_attribute_structure =
   Error "unexpected merlin.document attribute structure"
 
 module Override = struct
-  type t = { loc : Location.t; doc : string }
+  type t = { loc : Location.t; doc : string; source_location : Lexing.position }
 
   let expr_to_pos ({ pexp_desc; _ } : Parsetree.expression) =
     match pexp_desc with
@@ -38,22 +38,24 @@ module Override = struct
 
   let of_expression ({ pexp_desc; _ } : Parsetree.expression) =
     match pexp_desc with
-    | Pexp_tuple
-        [ ( None,
-            { pexp_desc =
-                Pexp_record
-                  ( [ ({ txt = Lident "loc_start"; _ }, loc_start_expr);
-                      ({ txt = Lident "loc_end"; _ }, loc_end_expr);
-                      ({ txt = Lident "loc_ghost"; _ }, loc_ghost_expr)
-                    ],
-                    None );
-              _
-            } );
-          ( None,
-            { pexp_desc = Pexp_constant (Pconst_string (documentation, _, _));
-              _
-            } )
-        ] ->
+    | Pexp_record
+        ( [ ( { txt = Lident "location"; _ },
+              { pexp_desc =
+                  Pexp_record
+                    ( [ ({ txt = Lident "loc_start"; _ }, loc_start_expr);
+                        ({ txt = Lident "loc_end"; _ }, loc_end_expr);
+                        ({ txt = Lident "loc_ghost"; _ }, loc_ghost_expr)
+                      ],
+                      None );
+                _
+              } );
+            ( { txt = Lident "document"; _ },
+              { pexp_desc = Pexp_constant (Pconst_string (documentation, _, _));
+                _
+              } );
+            ({ txt = Lident "locate"; _ }, source_location_expr)
+          ],
+          None ) ->
       let open Misc_stdlib.Monad.Result.Syntax in
       let* loc_start = expr_to_pos loc_start_expr in
       let* loc_end = expr_to_pos loc_end_expr in
@@ -63,9 +65,11 @@ module Override = struct
         | Pexp_construct ({ txt = Lident "true"; _ }, None) -> Ok true
         | _ -> error_failed_to_parse_position_field_values
       in
+      let* source_location = expr_to_pos source_location_expr in
       Ok
         { loc = { Location.loc_start; loc_end; loc_ghost };
-          doc = documentation
+          doc = documentation;
+          source_location
         }
     | _ -> error_unexpected_merlin_document_attribute_structure
 
