@@ -258,3 +258,20 @@ Document an invalid position
 
   $ test_merlin_document "1:70" "./invalid-position.ml"
   this is a document override at an invalid position
+
+Document a floating attribute
+
+  $ cat >floating_attribute.ml <<EOF
+  > [@@@test_floating_attribute]
+  > [@@@merlin.document
+  >   [({
+  >       loc_start =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 4 };
+  >       loc_end =
+  >         { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 27 };
+  >       loc_ghost = false
+  >     }, "@@@test_floating_attribute is a test floating attribute")]]
+  > EOF
+
+  $ test_merlin_document "1:4" "./floating_attribute.ml"
+  @@@test_floating_attribute is a test floating attribute
