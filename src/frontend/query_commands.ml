@@ -530,25 +530,34 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
     let typer = Mpipeline.typer_result pipeline in
     let pos = Mpipeline.get_lexing_pos pipeline pos in
     Refactor_open.get_rewrites ~mode typer pos
-  | Document (patho, pos) ->
-    let typer = Mpipeline.typer_result pipeline in
-    let local_defs = Mtyper.get_typedtree typer in
-    let config = Mpipeline.final_config pipeline in
+  | Document (patho, pos) -> (
     let pos = Mpipeline.get_lexing_pos pipeline pos in
-    let comments = Mpipeline.reader_comments pipeline in
-    let env, _ = Mbrowse.leaf_node (Mtyper.node_at typer pos) in
-    let path =
-      match patho with
-      | Some p -> p
-      | None ->
-        let path = Misc_utils.reconstruct_identifier pipeline pos None in
-        let path = Mreader_lexer.identifier_suffix path in
-        let path = List.map ~f:(fun { Location.txt; _ } -> txt) path in
-        String.concat ~sep:"." path
+    let from_document_override_attribute =
+      pipeline |> Override_document.get_overrides
+      |> Override_document.find ~cursor:pos
+      |> Option.map ~f:Override_document.Override.doc
     in
-    if path = "" then `Invalid_context
-    else
-      Locate.get_doc ~config ~env ~local_defs ~comments ~pos (`User_input path)
+    match from_document_override_attribute with
+    | Some doc_string -> `Found doc_string
+    | None ->
+      let typer = Mpipeline.typer_result pipeline in
+      let local_defs = Mtyper.get_typedtree typer in
+      let config = Mpipeline.final_config pipeline in
+      let comments = Mpipeline.reader_comments pipeline in
+      let env, _ = Mbrowse.leaf_node (Mtyper.node_at typer pos) in
+      let path =
+        match patho with
+        | Some p -> p
+        | None ->
+          let path = Misc_utils.reconstruct_identifier pipeline pos None in
+          let path = Mreader_lexer.identifier_suffix path in
+          let path = List.map ~f:(fun { Location.txt; _ } -> txt) path in
+          String.concat ~sep:"." path
+      in
+      if path = "" then `Invalid_context
+      else
+        Locate.get_doc ~config ~env ~local_defs ~comments ~pos
+          (`User_input path))
   | Syntax_document pos -> (
     let typer = Mpipeline.typer_result pipeline in
     let pos = Mpipeline.get_lexing_pos pipeline pos in
