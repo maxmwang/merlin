@@ -1,4 +1,4 @@
-  $ function test_merlin_document {
+  $ test_merlin_document () {
   > local position="$1"
   > local file="$2"
   > 
