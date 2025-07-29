@@ -24,9 +24,15 @@
 *)
 
 module Override : sig
+  module Payload : sig
+    type t =
+      | Document of string
+      | Locate of Lexing.position
+  end
+
   type t
 
-  val doc : t -> string
+  val payload : t -> Payload.t
 end
 
 type t
@@ -35,7 +41,7 @@ type t
     AST node structures and parsing errors.
 
     If there are multiple [@@@merlin.document] attributes, they will be merged. *)
-val get_overrides : Mpipeline.t -> t
+val get_overrides : attribute_name:string -> Mpipeline.t -> t
 
 (** Finds the first [Override.t] that [cursor] is enclosed in. *)
 val find : t -> cursor:Lexing.position -> Override.t option

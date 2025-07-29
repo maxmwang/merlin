@@ -12,27 +12,106 @@
   > 
   > [@@@do_nothing]
   > [@@@merlin.document
-  >   [({
-  >       loc_start =
-  >         { pos_fname = "basic.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 69 };
-  >       loc_end =
-  >         { pos_fname = "basic.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 76 };
-  >       loc_ghost = false
-  >     }, "@add_one expands expressions with a '+ 1'");
-  >   ({
-  >      loc_start =
-  >        { pos_fname = "basic.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 88 };
-  >      loc_end =
-  >        { pos_fname = "basic.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 98 };
-  >      loc_ghost = false
-  >    }, "@@@do_nothing expands into nothing");
-  >   ({
-  >      loc_start =
-  >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 40 };
-  >      loc_end =
-  >        { pos_fname = "basic.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 44 };
-  >      loc_ghost = false
-  >    }, "%swap swaps the first two arguments of a function call")]]
+  >   [{
+  >      location =
+  >        {
+  >          loc_start =
+  >            { pos_fname = "test.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 69
+  >            };
+  >          loc_end =
+  >            { pos_fname = "test.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 76
+  >            };
+  >          loc_ghost = false
+  >        };
+  >      document = "@add_one expands expressions with a '+ 1'"
+  >    };
+  >   {
+  >     location =
+  >       {
+  >         loc_start =
+  >           { pos_fname = "test.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 88
+  >           };
+  >         loc_end =
+  >           { pos_fname = "test.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 98
+  >           };
+  >         loc_ghost = false
+  >       };
+  >     document = "@@@do_nothing expands into nothing"
+  >   };
+  >   {
+  >     location =
+  >       {
+  >         loc_start =
+  >           { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 40
+  >           };
+  >         loc_end =
+  >           { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 44
+  >           };
+  >         loc_ghost = false
+  >       };
+  >     document = "%swap swaps the first two arguments of a function call"
+  >   }]]
+  > [@@@merlin.locate
+  >   [{
+  >      location =
+  >        {
+  >          loc_start =
+  >            { pos_fname = "test.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 69
+  >            };
+  >          loc_end =
+  >            { pos_fname = "test.ml"; pos_lnum = 3; pos_bol = 56; pos_cnum = 76
+  >            };
+  >          loc_ghost = false
+  >        };
+  >      locate =
+  >        {
+  >          pos_fname =
+  >            "external/ppxlib/test/document/ppx/ppxlib_ppx_for_testing_merlin_document.ml";
+  >          pos_lnum = 45;
+  >          pos_bol = 1440;
+  >          pos_cnum = 1442
+  >        }
+  >    };
+  >   {
+  >     location =
+  >       {
+  >         loc_start =
+  >           { pos_fname = "test.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 88
+  >           };
+  >         loc_end =
+  >           { pos_fname = "test.ml"; pos_lnum = 5; pos_bol = 84; pos_cnum = 98
+  >           };
+  >         loc_ghost = false
+  >       };
+  >     locate =
+  >       {
+  >         pos_fname =
+  >           "external/ppxlib/test/document/ppx/ppxlib_ppx_for_testing_merlin_document.ml";
+  >         pos_lnum = 86;
+  >         pos_bol = 2568;
+  >         pos_cnum = 2570
+  >       }
+  >   };
+  >   {
+  >     location =
+  >       {
+  >         loc_start =
+  >           { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 40
+  >           };
+  >         loc_end =
+  >           { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 30; pos_cnum = 44
+  >           };
+  >         loc_ghost = false
+  >       };
+  >     locate =
+  >       {
+  >         pos_fname =
+  >           "external/ppxlib/test/document/ppx/ppxlib_ppx_for_testing_merlin_document.ml";
+  >         pos_lnum = 10;
+  >         pos_bol = 291;
+  >         pos_cnum = 296
+  >       }
+  >   }]]
   > EOF
 
   $ cat >basic.mli <<EOF

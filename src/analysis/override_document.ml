@@ -12,8 +12,6 @@ let error_unexpected_merlin_document_attribute_structure =
   Error "unexpected merlin.document attribute structure"
 
 module Override = struct
-  type t = { loc : Location.t; doc : string }
-
   let expr_to_pos ({ pexp_desc; _ } : Parsetree.expression) =
     match pexp_desc with
     | Pexp_record
@@ -36,24 +34,36 @@ module Override = struct
       | _ -> error_failed_to_parse_position_field_values)
     | _ -> error_unexpected_position_expression_structure
 
+  module Payload = struct
+    type t = Document of string | Locate of Lexing.position
+
+    let of_expression (expr : Parsetree.expression) =
+      match expr.pexp_desc with
+      | Pexp_constant (Pconst_string (documentation, _, _)) ->
+        Ok (Document documentation)
+      | Pexp_record _ ->
+        Result.map (expr_to_pos expr) ~f:(fun pos -> Locate pos)
+      | _ -> error_unexpected_merlin_document_attribute_structure
+  end
+
+  type t = { loc : Location.t; payload : Payload.t }
+
   let of_expression ({ pexp_desc; _ } : Parsetree.expression) =
     match pexp_desc with
-    | Pexp_tuple
-        [ ( None,
-            { pexp_desc =
-                Pexp_record
-                  ( [ ({ txt = Lident "loc_start"; _ }, loc_start_expr);
-                      ({ txt = Lident "loc_end"; _ }, loc_end_expr);
-                      ({ txt = Lident "loc_ghost"; _ }, loc_ghost_expr)
-                    ],
-                    None );
-              _
-            } );
-          ( None,
-            { pexp_desc = Pexp_constant (Pconst_string (documentation, _, _));
-              _
-            } )
-        ] ->
+    | Pexp_record
+        ( [ ( { txt = Lident "location"; _ },
+              { pexp_desc =
+                  Pexp_record
+                    ( [ ({ txt = Lident "loc_start"; _ }, loc_start_expr);
+                        ({ txt = Lident "loc_end"; _ }, loc_end_expr);
+                        ({ txt = Lident "loc_ghost"; _ }, loc_ghost_expr)
+                      ],
+                      None );
+                _
+              } );
+            ({ txt = Lident _; _ }, payload_expression)
+          ],
+          None ) ->
       let open Misc_stdlib.Monad.Result.Syntax in
       let* loc_start = expr_to_pos loc_start_expr in
       let* loc_end = expr_to_pos loc_end_expr in
@@ -63,17 +73,15 @@ module Override = struct
         | Pexp_construct ({ txt = Lident "true"; _ }, None) -> Ok true
         | _ -> error_failed_to_parse_position_field_values
       in
-      Ok
-        { loc = { Location.loc_start; loc_end; loc_ghost };
-          doc = documentation
-        }
+      let* payload = Payload.of_expression payload_expression in
+      Ok { loc = { Location.loc_start; loc_end; loc_ghost }; payload }
     | _ -> error_unexpected_merlin_document_attribute_structure
 
   let is_target_override t ~cursor =
     Lexing.compare_pos cursor t.loc.loc_start >= 0
     && Lexing.compare_pos cursor t.loc.loc_end <= 0
 
-  let doc t = t.doc
+  let payload t = t.payload
 end
 
 type t = Override.t list
@@ -97,24 +105,22 @@ let of_attribute (attribute : Parsetree.attribute) =
     Ok (of_payload expr)
   | _ -> error_unexpected_merlin_document_attribute_structure
 
-let get_overrides pipeline =
+let get_overrides ~attribute_name pipeline =
   let attributes =
     match Mpipeline.ppx_parsetree pipeline with
     | `Interface signature ->
       List.filter_map signature.psg_items
         ~f:(fun (signature_item : Parsetree.signature_item) ->
           match signature_item.psig_desc with
-          | Psig_attribute
-              ({ attr_name = { txt = "merlin.document"; _ }; _ } as attr) ->
-            Some attr
+          | Psig_attribute ({ attr_name = { txt; _ }; _ } as attr)
+            when String.equal attribute_name txt -> Some attr
           | _ -> None)
     | `Implementation structure ->
       List.filter_map structure
         ~f:(fun (structure_item : Parsetree.structure_item) ->
           match structure_item.pstr_desc with
-          | Pstr_attribute
-              ({ attr_name = { txt = "merlin.document"; _ }; _ } as attr) ->
-            Some attr
+          | Pstr_attribute ({ attr_name = { txt; _ }; _ } as attr)
+            when String.equal attribute_name txt -> Some attr
           | _ -> None)
   in
   List.concat_map attributes ~f:(fun attribute ->
