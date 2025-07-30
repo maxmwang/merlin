@@ -580,55 +580,68 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
       `Found
         (Ppx_expand.get_ppxed_source ~ppxed_parsetree ~pos ppx_kind_with_attr)
     | None -> `No_ppx)
-  | Locate (patho, ml_or_mli, pos, context) ->
-    let typer = Mpipeline.typer_result pipeline in
-    let local_defs = Mtyper.get_typedtree typer in
+  | Locate (patho, ml_or_mli, pos, context) -> (
     let pos = Mpipeline.get_lexing_pos pipeline pos in
-    let let_pun_behavior = Mbrowse.Let_pun_behavior.Prefer_expression in
-    let env, _ = Mbrowse.leaf_node (Mtyper.node_at typer pos) in
-    let path =
-      match patho with
-      | Some p -> p
-      | None ->
-        let path = Misc_utils.reconstruct_identifier pipeline pos None in
-        let path = Mreader_lexer.identifier_suffix path in
-        let path = List.map ~f:(fun { Location.txt; _ } -> txt) path in
-        let path = String.concat ~sep:"." path in
-        Locate.log ~title:"reconstructed identifier" "%s" path;
-        path
+    let from_locate_override_attribute =
+      pipeline
+      |> Override_document.get_overrides ~attribute_name:"merlin.locate"
+      |> Override_document.find ~cursor:pos
+      |> Option.bind ~f:(fun override ->
+             match Override_document.Override.payload override with
+             | Document _ -> None
+             | Locate loc -> Some loc)
     in
-    if path = "" then `Invalid_context
-    else
-      let config =
-        Locate.
-          { mconfig = Mpipeline.final_config pipeline;
-            ml_or_mli;
-            traverse_aliases = true
-          }
+    match from_locate_override_attribute with
+    | Some source_location ->
+      `Found (Some source_location.pos_fname, source_location)
+    | None ->
+      let typer = Mpipeline.typer_result pipeline in
+      let local_defs = Mtyper.get_typedtree typer in
+      let let_pun_behavior = Mbrowse.Let_pun_behavior.Prefer_expression in
+      let env, _ = Mbrowse.leaf_node (Mtyper.node_at typer pos) in
+      let path =
+        match patho with
+        | Some p -> p
+        | None ->
+          let path = Misc_utils.reconstruct_identifier pipeline pos None in
+          let path = Mreader_lexer.identifier_suffix path in
+          let path = List.map ~f:(fun { Location.txt; _ } -> txt) path in
+          let path = String.concat ~sep:"." path in
+          Locate.log ~title:"reconstructed identifier" "%s" path;
+          path
       in
-      begin
-        let namespaces =
-          Option.map context ~f:(fun ctx ->
-              Locate.Namespace_resolution.From_context ctx)
+      if path = "" then `Invalid_context
+      else
+        let config =
+          Locate.
+            { mconfig = Mpipeline.final_config pipeline;
+              ml_or_mli;
+              traverse_aliases = true
+            }
         in
-        match
-          Locate.from_string ~config ~env ~local_defs ~pos ?namespaces
-            ~let_pun_behavior path
-        with
-        | `Found { file; location; _ } ->
-          Locate.log ~title:"result" "found: %s" file;
-          `Found (Some file, location.loc_start)
-        | `Missing_labels_namespace ->
-          (* Can't happen because we haven't passed a namespace as input. *)
-          assert false
-        | `Builtin (_, s) ->
-          Locate.log ~title:"result" "found builtin %s" s;
-          `Builtin s
-        | (`Not_found _ | `At_origin | `Not_in_env _ | `File_not_found _) as
-          otherwise ->
-          Locate.log ~title:"result" "not found";
-          otherwise
-      end
+        begin
+          let namespaces =
+            Option.map context ~f:(fun ctx ->
+                Locate.Namespace_resolution.From_context ctx)
+          in
+          match
+            Locate.from_string ~config ~env ~local_defs ~pos ?namespaces
+              ~let_pun_behavior path
+          with
+          | `Found { file; location; _ } ->
+            Locate.log ~title:"result" "found: %s" file;
+            `Found (Some file, location.loc_start)
+          | `Missing_labels_namespace ->
+            (* Can't happen because we haven't passed a namespace as input. *)
+            assert false
+          | `Builtin (_, s) ->
+            Locate.log ~title:"result" "found builtin %s" s;
+            `Builtin s
+          | (`Not_found _ | `At_origin | `Not_in_env _ | `File_not_found _) as
+            otherwise ->
+            Locate.log ~title:"result" "not found";
+            otherwise
+        end)
   | Jump (target, pos) ->
     let typer = Mpipeline.typer_result pipeline in
     let typedtree = Mtyper.get_typedtree typer in

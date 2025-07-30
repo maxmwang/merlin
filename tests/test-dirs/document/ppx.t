@@ -111,8 +111,9 @@ Multiple @@@merlin.document attributes should be merged and both usable
   >          loc_ghost = false
   >        };
   >      document = "@add_one expands expressions with a '+ 1'"
-  >    };
-  >   {
+  >    }]]
+  > [@@@merlin.document
+  >   [{
   >     location =
   >       {
   >         loc_start =
