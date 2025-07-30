@@ -534,10 +534,11 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
     let pos = Mpipeline.get_lexing_pos pipeline pos in
     let from_document_override_attribute =
       pipeline
-      |> Override_document.get_overrides ~attribute_name:"merlin.document"
-      |> Override_document.find ~cursor:pos
+      |> Overrides.get_overrides
+           ~attribute_name:Overrides.Attribute_name.Document
+      |> Overrides.find ~cursor:pos
       |> Option.bind ~f:(fun override ->
-             match Override_document.Override.payload override with
+             match Overrides.Override.payload override with
              | Document doc -> Some doc
              | Locate _ -> None)
     in
@@ -584,10 +585,10 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
     let pos = Mpipeline.get_lexing_pos pipeline pos in
     let from_locate_override_attribute =
       pipeline
-      |> Override_document.get_overrides ~attribute_name:"merlin.locate"
-      |> Override_document.find ~cursor:pos
+      |> Overrides.get_overrides ~attribute_name:Overrides.Attribute_name.Locate
+      |> Overrides.find ~cursor:pos
       |> Option.bind ~f:(fun override ->
-             match Override_document.Override.payload override with
+             match Overrides.Override.payload override with
              | Document _ -> None
              | Locate loc -> Some loc)
     in
