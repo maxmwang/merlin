@@ -5,6 +5,10 @@
   (<> %{os_type} Win32)))
 
 (cram
+ (applies_to parameters)
+ (locks server-tests/merlin_server))
+
+(cram
  (applies_to typing-recovery)
  (enabled_if
   (and
