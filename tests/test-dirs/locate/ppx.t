@@ -415,6 +415,43 @@ Locate nested PPXs
     }
   }
 
+Override locate of a non-PPX
+  $ cat >override-non-ppx.ml <<EOF
+  > let f x = x + x
+  > let two = f 1
+  > [@@@merlin.locate
+  >   [{
+  >      location =
+  >        {
+  >          loc_start =
+  >            { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 15; pos_cnum = 25
+  >            };
+  >          loc_end =
+  >            { pos_fname = "test.ml"; pos_lnum = 2; pos_bol = 15; pos_cnum = 26
+  >            };
+  >          loc_ghost = false
+  >        };
+  >     locate =
+  >        {
+  >          pos_fname =
+  >            "external/some_file_for_f.ml";
+  >          pos_lnum = 1;
+  >          pos_bol = 0;
+  >          pos_cnum = 5
+  >        }
+  >   }]]
+  > EOF
+
+  $ test_merlin_locate "2:10" "./override-non-ppx.ml"
+  {
+    "file": "external/some_file_for_f.ml",
+    "pos": {
+      "line": 1,
+      "col": 5
+    }
+  }
+
+
 Override locate of payload of a PPX
 
   $ cat >ppx-payload.ml <<EOF
