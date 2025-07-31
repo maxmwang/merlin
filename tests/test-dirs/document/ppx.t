@@ -195,6 +195,36 @@ Existing document behavior of non-PPXs should not be affected.
   $ test_merlin_document "5:8" "./non-ppx.ml"
   [x] is a variable
 
+Existing document behavior of non-PPXs should not be affected. 
+
+  $ cat >non-ppx.ml <<EOF
+  > (** [x] is a variable *)
+  > let x = 0
+  > 
+  > let _ = (x [@add_one]) + 2
+  > let x = x + 1
+  > [@@@merlin.document
+  >   [{
+  >      location =
+  >        {
+  >          loc_start =
+  >            { pos_fname = "test.ml"; pos_lnum = 5; pos_bol = 62; pos_cnum = 70
+  >            };
+  >          loc_end =
+  >            { pos_fname = "test.ml"; pos_lnum = 5; pos_bol = 62; pos_cnum = 71
+  >            };
+  >          loc_ghost = false
+  >        };
+  >      document = "overriden documentation on [x]"
+  >    }]]
+  > EOF
+
+  $ test_merlin_document "2:4" "./non-ppx.ml"
+  [x] is a variable
+
+  $ test_merlin_document "5:8" "./non-ppx.ml"
+  overriden documentation on [x]
+
 merlin.document attribute's payload has invalid structure. below, the payload is missing
 
   $ cat >invalid-payload.ml <<EOF
