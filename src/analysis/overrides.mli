@@ -30,9 +30,7 @@ end
 
 module Override : sig
   module Payload : sig
-    type t =
-      | Document of string
-      | Locate of Lexing.position
+    type t = Document of string | Locate of Lexing.position
   end
 
   type t
