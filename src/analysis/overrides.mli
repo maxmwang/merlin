@@ -14,7 +14,7 @@
             "loc_end" = { pos_fname = "filename.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 0 }
             "loc_ghost" = false
           },
-          "payload" = <payload>
+          "<payload-field-name>" = <payload>
         };
         ...
       ]
