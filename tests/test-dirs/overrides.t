@@ -30,7 +30,7 @@
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "@add_one expands expressions with a '+ 1'"
+  >      payload = "@add_one expands expressions with a '+ 1'"
   >    };
   >   {
   >     location =
@@ -43,7 +43,7 @@
   >           };
   >         loc_ghost = false
   >       };
-  >     document = "@@@do_nothing expands into nothing"
+  >     payload = "@@@do_nothing expands into nothing"
   >   };
   >   {
   >     location =
@@ -56,7 +56,7 @@
   >           };
   >         loc_ghost = false
   >       };
-  >     document = "%swap swaps the first two arguments of a function call"
+  >     payload = "%swap swaps the first two arguments of a function call"
   >   }]]
   > [@@@merlin.locate
   >   [{
@@ -70,7 +70,7 @@
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -90,7 +90,7 @@
   >           };
   >         loc_ghost = false
   >       };
-  >     locate =
+  >     payload =
   >       {
   >         pos_fname =
   >           "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -110,7 +110,7 @@
   >           };
   >         loc_ghost = false
   >       };
-  >     locate =
+  >     payload =
   >       {
   >         pos_fname =
   >           "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -135,7 +135,7 @@
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "@identity does not expand into anything"
+  >      payload = "@identity does not expand into anything"
   >    }]]
   > [@@@merlin.locate
   >   [{
@@ -149,7 +149,7 @@
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -227,7 +227,7 @@ Multiple @@@merlin attributes should be merged and both usable
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "@add_one expands expressions with a '+ 1'"
+  >      payload = "@add_one expands expressions with a '+ 1'"
   >    }]]
   > [@@@merlin.document
   >   [{
@@ -241,7 +241,7 @@ Multiple @@@merlin attributes should be merged and both usable
   >           };
   >         loc_ghost = false
   >       };
-  >     document = "%swap swaps the first two arguments of a function call"
+  >     payload = "%swap swaps the first two arguments of a function call"
   >   }]]
   > [@@@merlin.locate
   >   [{
@@ -255,7 +255,7 @@ Multiple @@@merlin attributes should be merged and both usable
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -276,7 +276,7 @@ Multiple @@@merlin attributes should be merged and both usable
   >           };
   >         loc_ghost = false
   >       };
-  >     locate =
+  >     payload =
   >       {
   >         pos_fname =
   >           "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -318,7 +318,7 @@ Attribute location should not affect functionality.
   >             { pos_fname = "test.ml"; pos_lnum = 31; pos_bol = 867; pos_cnum = 887 }
   >         ; loc_ghost = false
   >         }
-  >     ; document = "@add_one expands expressions with a '+ 1'"
+  >     ; payload = "@add_one expands expressions with a '+ 1'"
   >     }
   >   ]]
   > 
@@ -330,7 +330,7 @@ Attribute location should not affect functionality.
   >             { pos_fname = "test.ml"; pos_lnum = 31; pos_bol = 867; pos_cnum = 887 }
   >         ; loc_ghost = false
   >         }
-  >     ; locate =
+  >     ; payload =
   >         { pos_fname =
   >             "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml"
   >         ; pos_lnum = 53
@@ -381,7 +381,7 @@ Attribute location should not affect functionality.
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "first target document override"
+  >      payload = "first target document override"
   >    };
   >    {
   >      location =
@@ -394,7 +394,7 @@ Attribute location should not affect functionality.
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "second target document override"
+  >      payload = "second target document override"
   >    }]]
   > [@@@merlin.locate
   >   [{
@@ -408,7 +408,7 @@ Attribute location should not affect functionality.
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "first target locate override";
@@ -428,7 +428,7 @@ Attribute location should not affect functionality.
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "second target locate override";
@@ -466,7 +466,7 @@ Override nested PPXs
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "inner %swap PPX"
+  >      payload = "inner %swap PPX"
   >    };
   >   {
   >     location =
@@ -479,7 +479,7 @@ Override nested PPXs
   >           };
   >         loc_ghost = false
   >       };
-  >     document = "outer %swap PPX"
+  >     payload = "outer %swap PPX"
   >   }]]
   > [@@@merlin.locate
   >   [{
@@ -493,7 +493,7 @@ Override nested PPXs
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "inner-%swap-PPX.ml";
@@ -513,7 +513,7 @@ Override nested PPXs
   >           };
   >         loc_ghost = false
   >       };
-  >     locate =
+  >     payload =
   >       {
   >         pos_fname =
   >           "outer-%swap-PPX.ml";
@@ -558,7 +558,7 @@ Override nested PPXs
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "%swap swaps the first two arguments of a function call"
+  >      payload = "%swap swaps the first two arguments of a function call"
   >    };
   >   {
   >     location =
@@ -569,7 +569,7 @@ Override nested PPXs
   >           { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 16 };
   >         loc_ghost = false
   >       };
-  >     document = "f can be a %swap-specific argument"
+  >     payload = "f can be a %swap-specific argument"
   >   }]]
   > [@@@merlin.locate
   >   [{
@@ -583,7 +583,7 @@ Override nested PPXs
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -601,7 +601,7 @@ Override nested PPXs
   >           { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 16 };
   >         loc_ghost = false
   >       };
-  >     locate =
+  >     payload =
   >        {
   >          pos_fname =
   >            "external/some_file_for_f.ml";
@@ -647,7 +647,7 @@ Override a floating attribute
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "@@@do_nothing expands into nothing"
+  >      payload = "@@@do_nothing expands into nothing"
   >    }]]
   > [@@@merlin.locate
   >   [{
@@ -660,7 +660,7 @@ Override a floating attribute
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -697,7 +697,7 @@ Override an attribute in a extension's payload
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "@add_one expands expressions with a '+ 1'"
+  >      payload = "@add_one expands expressions with a '+ 1'"
   >    };
   >   {
   >     location =
@@ -708,7 +708,7 @@ Override an attribute in a extension's payload
   >           { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 14 };
   >         loc_ghost = false
   >       };
-  >     document = "%swap swaps the first two arguments of a function call"
+  >     payload = "%swap swaps the first two arguments of a function call"
   >   }]]
   > [@@@merlin.locate
   >   [{
@@ -722,7 +722,7 @@ Override an attribute in a extension's payload
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -740,7 +740,7 @@ Override an attribute in a extension's payload
   >           { pos_fname = "test.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 14 };
   >         loc_ghost = false
   >       };
-  >     locate =
+  >     payload =
   >       {
   >         pos_fname =
   >           "external/ppxlib/test/overrides/ppx/ppxlib_ppx_for_testing_merlin_overrides.ml";
@@ -791,7 +791,7 @@ Existing behavior of non-overridden locations should not be affected. Also, over
   >            };
   >          loc_ghost = false
   >        };
-  >      document = "overridden documentation on [x]"
+  >      payload = "overridden documentation on [x]"
   >    }]]
   > [@@@merlin.locate
   >   [{
@@ -805,7 +805,7 @@ Existing behavior of non-overridden locations should not be affected. Also, over
   >            };
   >          loc_ghost = false
   >        };
-  >      locate =
+  >      payload =
   >        {
   >          pos_fname =
   >            "overridden-location-of-x.ml";

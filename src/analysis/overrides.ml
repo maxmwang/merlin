@@ -8,8 +8,6 @@ let error_failed_to_parse_position_field_values =
 let error_unexpected_position_expression_structure =
   Error "unexpected position expression structure"
 
-let error_unexpected_payload_field_name = Error "unexpected payload field name"
-
 let error_unexpected_payload_expression_structure =
   Error "expected payload expression structure"
 
@@ -22,10 +20,6 @@ module Attribute_name = struct
   let to_name = function
     | Document -> "merlin.document"
     | Locate -> "merlin.locate"
-
-  let to_field_name = function
-    | Document -> "document"
-    | Locate -> "locate"
 end
 
 module Override = struct
@@ -79,7 +73,7 @@ module Override = struct
                       None );
                 _
               } );
-            ({ txt = Lident payload_field_name; _ }, payload_expression)
+            ({ txt = Lident "payload"; _ }, payload_expression)
           ],
           None ) ->
       let open Misc_stdlib.Monad.Result.Syntax in
@@ -92,13 +86,7 @@ module Override = struct
         | _ -> error_failed_to_parse_position_field_values
       in
       let* payload =
-        match
-          String.equal
-            (Attribute_name.to_field_name attribute_name)
-            payload_field_name
-        with
-        | true -> Payload.of_expression ~attribute_name ~expr:payload_expression
-        | false -> error_unexpected_payload_field_name
+        Payload.of_expression ~attribute_name ~expr:payload_expression
       in
       Ok { loc = { Location.loc_start; loc_end; loc_ghost }; payload }
     | _ -> error_unexpected_merlin_override_attribute_structure
