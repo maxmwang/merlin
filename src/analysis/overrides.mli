@@ -14,7 +14,7 @@
             "loc_end" = { pos_fname = "filename.ml"; pos_lnum = 1; pos_bol = 0; pos_cnum = 0 }
             "loc_ghost" = false
           },
-          "<payload-field-name>" = <payload>
+          "payload" = <payload>
         };
         ...
       ]
@@ -23,7 +23,7 @@
     is stored as a [t].
 *)
 
-(** Constants for attribute names and field names *)
+(** Constants for override attribute names *)
 module Attribute_name : sig
   type t = Document | Locate
 end
