@@ -583,6 +583,7 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
     | None -> `No_ppx)
   | Locate (patho, ml_or_mli, pos, context) -> (
     let pos = Mpipeline.get_lexing_pos pipeline pos in
+    let mconfig = Mpipeline.final_config pipeline in
     let from_locate_override_attribute =
       pipeline
       |> Overrides.get_overrides ~attribute_name:Overrides.Attribute_name.Locate
@@ -593,8 +594,19 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
              | Locate loc -> Some loc)
     in
     match from_locate_override_attribute with
-    | Some source_location ->
-      `Found (Some source_location.pos_fname, source_location)
+    | Some source_position ->
+      let absolute_file_path =
+        (* Path returned is always an absolute path because [mconfig.merlin.source_root]
+           is absolute (see [dot_merlin_reader.ml#prepend_config]) and, when
+           [mconfig.merlin.source_root = None], [canonicalize_filenmae] defaults to
+           [Sys.getcwd ()]. *)
+        Misc.canonicalize_filename ?cwd:mconfig.merlin.source_root
+          source_position.pos_fname
+      in
+      let source_position =
+        { source_position with pos_fname = absolute_file_path }
+      in
+      `Found (Some absolute_file_path, source_position)
     | None ->
       let typer = Mpipeline.typer_result pipeline in
       let local_defs = Mtyper.get_typedtree typer in
@@ -618,13 +630,7 @@ let dispatch pipeline (type a) : a Query_protocol.t -> a = function
           | `ML -> `Smart
           | `MLI -> `MLI
         in
-        let config =
-          Locate.
-            { mconfig = Mpipeline.final_config pipeline;
-              ml_or_mli;
-              traverse_aliases = true
-            }
-        in
+        let config = Locate.{ mconfig; ml_or_mli; traverse_aliases = true } in
         begin
           let namespaces =
             Option.map context ~f:(fun ctx ->
