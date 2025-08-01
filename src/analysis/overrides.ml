@@ -9,7 +9,7 @@ let error_unexpected_position_expression_structure =
   Error "unexpected position expression structure"
 
 let error_unexpected_payload_expression_structure =
-  Error "expected payload expression structure"
+  Error "unexpected payload expression structure"
 
 let error_unexpected_merlin_override_attribute_structure =
   Error "unexpected merlin.X attribute structure"
