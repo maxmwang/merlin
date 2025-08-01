@@ -49,7 +49,7 @@ module Override = struct
     type t = Document of string | Locate of Lexing.position
 
     let of_expression ~(attribute_name : Attribute_name.t)
-        ~(expr : Parsetree.expression) =
+        (expr : Parsetree.expression) =
       match (attribute_name, expr.pexp_desc) with
       | Document, Pexp_constant (Pconst_string (documentation, _, _)) ->
         Ok (Document documentation)
@@ -85,9 +85,7 @@ module Override = struct
         | Pexp_construct ({ txt = Lident "true"; _ }, None) -> Ok true
         | _ -> error_failed_to_parse_position_field_values
       in
-      let* payload =
-        Payload.of_expression ~attribute_name ~expr:payload_expression
-      in
+      let* payload = Payload.of_expression ~attribute_name payload_expression in
       Ok { loc = { Location.loc_start; loc_end; loc_ghost }; payload }
     | _ -> error_unexpected_merlin_override_attribute_structure
 
