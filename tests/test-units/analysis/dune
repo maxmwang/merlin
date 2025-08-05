@@ -1,0 +1,3 @@
+(test
+ (name analysis_test)
+ (libraries alcotest merlin-lib.analysis))
