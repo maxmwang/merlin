@@ -25,6 +25,16 @@ let test_construct =
       in
       ())
 
+let test_construct_no_total_order =
+  let open Alcotest in
+  test_case "test construction of intervals without total ordering" `Quick
+    (fun () ->
+      check_raises "should raise exn"
+        (Invalid_argument "input interval es do not follow a total ordering")
+        (fun () ->
+          let _ = create_intervals [ ((0, 3), "1"); ((1, 4), "2") ] in
+          ()))
+
 let test_find ~input ~expected =
   (*
     0 1 2 3 4 5 6 7 8 9 10
@@ -56,9 +66,18 @@ let test_find ~input ~expected =
       let payload = Overrides_interval_tree.find tree input in
       check (option string) "should be equal" expected payload)
 
+let test_find_first =
+  let tree = create_intervals [ ((0, 4), "0"); ((2, 2), "1"); ((2, 2), "2") ] in
+  let open Alcotest in
+  test_case "test find on input with duplicate intervals" `Quick (fun () ->
+      let expected = Some "1" in
+      let payload = Overrides_interval_tree.find tree 2 in
+      check (option string) "should be equal" expected payload)
+
 let cases =
   ( "overrides-interval-tree",
     [ test_construct;
+      test_construct_no_total_order;
       test_find ~input:0 ~expected:(Some "1");
       test_find ~input:1 ~expected:(Some "2");
       test_find ~input:2 ~expected:(Some "0");
@@ -69,5 +88,6 @@ let cases =
       test_find ~input:7 ~expected:(Some "6");
       test_find ~input:8 ~expected:(Some "8");
       test_find ~input:9 ~expected:(Some "9");
-      test_find ~input:10 ~expected:None
+      test_find ~input:10 ~expected:None;
+      test_find_first
     ] )

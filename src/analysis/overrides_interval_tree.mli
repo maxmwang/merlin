@@ -1,13 +1,16 @@
-(** This [Interval_tree] is an immutable data structure that stores mappings from integer
+(** This interval tree is an immutable data structure that stores mappings from integer
     intervals to values ['a] and allows efficient queries for intervals that contain a
     given point.
 
-    [Interval_tree] assumes that input intervals have a total ordering, such as AST node
+    Interval tree assumes that input intervals have a total ordering, such as AST node
     locations.
 
     This is the minimal interface to support querying [[@@@merlin]] overrides by cursor
     position. Common functions, such as [insert] and [delete], are left unimplemented since
-    they are not necessary, but are possibly easy to include. *)
+    they are not necessary, but are possibly easy to include.
+
+    The general design of the data structure is on
+    {{:https://en.wikipedia.org/wiki/Interval_tree#Centered_interval_tree}this wiki page}. *)
 
 module Interval : sig
   type 'a t
@@ -18,11 +21,10 @@ end
 
 type 'a t
 
-(** Find the tightest interval that contains a given integer point. Runs with logarithmic
-    asymptotic time complexity.
+(** Find the tightest interval that contains a given integer point.
 
-    [Interval_tree] assumes a total ordering. Ties imply equivalence, and we return the
-    first. *)
+    [find] assumes a total ordering. Ties imply equivalence, and we return the
+    first. Without total ordering, the interval with the lowest [low] is chosen. *)
 val find : 'a t -> int -> 'a option
 
 (** Constructs a ['a t] given a list of ['a Interval.t]. Raises on empty lists. *)

@@ -1,3 +1,6 @@
+let input_has_no_total_ordering =
+  Invalid_argument "input interval ranges do not follow a total ordering"
+
 module Interval = struct
   type 'a t = { low : int; high : int; payload : 'a }
 
@@ -62,6 +65,8 @@ let rec of_alist_helper (lst : _ Interval.t array) =
       let median_interval = Array.get lst (length / 2) in
       (median_interval.low + median_interval.high) / 2
     in
+    (* A two-pass, out-of-place, stable partition. A stable partition is desired such that
+       medians can be easily calculated in recursive calls *)
     let target = Array.copy lst in
     let left_count, overlap_count =
       Array.fold_left
@@ -70,10 +75,7 @@ let rec of_alist_helper (lst : _ Interval.t array) =
           | true, true -> (left_count + 1, overlap_count)
           | true, false -> (left_count, overlap_count + 1)
           | false, false -> (left_count, overlap_count)
-          | _ ->
-            raise
-              (Invalid_argument
-                 "input interval ranges do not follow a total ordering"))
+          | _ -> raise input_has_no_total_ordering)
         (0, 0) lst
     in
     let right_count = length - left_count - overlap_count in
@@ -92,10 +94,7 @@ let rec of_alist_helper (lst : _ Interval.t array) =
         | false, false ->
           Array.set target !right_i interval;
           right_i := !right_i + 1
-        | _ ->
-          raise
-            (Invalid_argument
-               "input interval ranges do not follow a total ordering"))
+        | _ -> raise input_has_no_total_ordering)
       lst;
     let left = of_alist_helper (Array.sub target 0 left_count) in
     let right =
