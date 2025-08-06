@@ -12,21 +12,24 @@
     The general design of the data structure is on
     {{:https://en.wikipedia.org/wiki/Interval_tree#Centered_interval_tree}this wiki page}. *)
 
+(** [Interval] contains an interval tree entry's range and payload. *)
 module Interval : sig
   type 'a t
 
   (** [low] is included in the range. [high] is excluded from the range. Raises if input
       [low] > [high]. *)
-  val create : low:int -> high:int -> payload:'a -> 'a t
+  val create_exn : low:int -> high:int -> payload:'a -> 'a t
 end
 
 type 'a t
 
-(** Find the tightest interval that contains a given integer point.
+(** Find the tightest interval that contains a given integer point. Runs in O(logn + mlogm)
+    where m is the number of intervals containing the point.
 
     [find] assumes a total ordering. Ties imply equivalence, and we return the
-    first. Without total ordering, the interval with the lowest [low] is chosen. *)
+    first. *)
 val find : 'a t -> int -> 'a option
 
-(** Constructs a ['a t] given a list of ['a Interval.t]. Raises on empty lists. *)
+(** Constructs a ['a t] given a list of ['a Interval.t]. Runs in O(nlogn) time. Raises on
+    empty lists. *)
 val of_alist_exn : 'a Interval.t list -> 'a t

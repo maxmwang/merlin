@@ -1,13 +1,8 @@
-let input_low_greater_than_high = Invalid_argument "input low greater than high"
-
-let input_invalid_interval_range =
-  Invalid_argument "input interval ranges has low greater than high"
-
 module Interval = struct
   type 'a t = { low : int; high : int; payload : 'a }
 
-  let create ~low ~high ~payload =
-    if low > high then raise input_low_greater_than_high
+  let create_exn ~low ~high ~payload =
+    if low > high then raise (Invalid_argument "input low greater than high")
     else { low; high; payload }
 
   let compare_low t1 t2 = Int.compare t1.low t2.low
@@ -17,6 +12,15 @@ module Interval = struct
   let payload t = t.payload
 end
 
+(** The type representing an interval tree node.
+
+    [center] is an approximation of the median of all intervals contained in the subtree [t].
+
+    [left] is the subtree containing all intervals to the left of [center].
+
+    [left] is the subtree containing all intervals to the right of [center].
+
+    [intervals] is a list of all intervals that contain [center] *)
 type 'a t =
   { center : int;
     left : 'a t option;
@@ -24,6 +28,8 @@ type 'a t =
     intervals : 'a Interval.t list
   }
 
+(** Implementation based off of
+    {{:https://en.wikipedia.org/wiki/Interval_tree#With_a_point}}this description.  *)
 let rec find_helper t point =
   match point <= t.center with
   | true -> (
@@ -59,58 +65,34 @@ let find t point =
   | [] -> None
   | first :: _ -> Some first
 
-let rec of_alist_helper (lst : _ Interval.t array) =
-  match Array.length lst with
+let rec of_alist_helper (lst : _ Interval.t list) =
+  match List.length lst with
   | 0 -> None
   | length ->
-    (* The middle of the range of the middle interval is a close approximation to the
-       median. *)
     let median =
-      let median_interval = Array.get lst (length / 2) in
+      (* The middle of the range of the middle interval is a close approximation to the
+         median. *)
+      let median_interval = List.nth lst (length / 2) in
       (median_interval.low + median_interval.high) / 2
     in
-    (* A two-pass, out-of-place, stable partition. A stable partition is desired such that
-       medians can be easily calculated in recursive calls *)
-    let target = Array.copy lst in
-    let left_count, overlap_count =
-      Array.fold_left
-        (fun (left_count, overlap_count) (interval : _ Interval.t) ->
+    let to_left, to_overlap, to_right =
+      List.fold_right
+        (fun (interval : _ Interval.t) (to_left, to_overlap, to_right) ->
           match (interval.low <= median, interval.high < median) with
-          | true, true -> (left_count + 1, overlap_count)
-          | true, false -> (left_count, overlap_count + 1)
-          | false, false -> (left_count, overlap_count)
-          | _ -> raise input_invalid_interval_range)
-        (0, 0) lst
+          | true, true -> (interval :: to_left, to_overlap, to_right)
+          | true, false -> (to_left, interval :: to_overlap, to_right)
+          | false, false -> (to_left, to_overlap, interval :: to_right)
+          | _ ->
+            raise (Invalid_argument "input interval has low greater than high"))
+        lst ([], [], [])
     in
-    let right_count = length - left_count - overlap_count in
-    let left_i, overlap_i, right_i =
-      (ref 0, ref left_count, ref (left_count + overlap_count))
-    in
-    Array.iter
-      (fun (interval : _ Interval.t) ->
-        match (interval.low <= median, interval.high < median) with
-        | true, true ->
-          Array.set target !left_i interval;
-          left_i := !left_i + 1
-        | true, false ->
-          Array.set target !overlap_i interval;
-          overlap_i := !overlap_i + 1
-        | false, false ->
-          Array.set target !right_i interval;
-          right_i := !right_i + 1
-        | _ -> raise input_invalid_interval_range)
-      lst;
-    let left = of_alist_helper (Array.sub target 0 left_count) in
-    let right =
-      of_alist_helper
-        (Array.sub target (left_count + overlap_count) right_count)
-    in
-    let intervals = Array.to_list (Array.sub target left_count overlap_count) in
+    let left = of_alist_helper to_left in
+    let right = of_alist_helper to_right in
+    let intervals = to_overlap in
     Some { center = median; left; right; intervals }
 
 let of_alist_exn lst =
-  let intervals = Array.of_list lst in
-  Array.stable_sort Interval.compare_low intervals;
-  match of_alist_helper intervals with
+  let sorted_lst = List.stable_sort Interval.compare_low lst in
+  match of_alist_helper sorted_lst with
   | Some tree -> tree
   | None -> raise (Invalid_argument "input list is empty")
