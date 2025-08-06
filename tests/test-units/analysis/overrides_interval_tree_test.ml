@@ -3,8 +3,9 @@ open Merlin_analysis
 let create_tree intervals =
   intervals
   |> List.map (fun ((low, high), payload) ->
-         Overrides_interval_tree.Interval.create_exn ~low ~high ~payload)
-  |> Overrides_interval_tree.of_alist_exn
+         Result.get_ok
+           (Overrides_interval_tree.Interval.create ~low ~high ~payload))
+  |> Overrides_interval_tree.of_alist
 
 let test_of_alist_exn =
   let open Alcotest in
@@ -25,24 +26,15 @@ let test_of_alist_exn =
       in
       ())
 
-let test_empty_list =
-  let open Alcotest in
-  test_case "test basic list construction" `Quick (fun () ->
-      check_raises "should raise exn" (Invalid_argument "input list is empty")
-        (fun () ->
-          let _ : string Overrides_interval_tree.t = create_tree [] in
-          ()))
-
 let test_invalid_interval =
   let open Alcotest in
   test_case "test creating invalid interval" `Quick (fun () ->
-      check_raises "should raise exn"
-        (Invalid_argument "input low greater than high") (fun () ->
-          let _ =
-            Overrides_interval_tree.Interval.create_exn ~low:5 ~high:0
-              ~payload:"invalid"
-          in
-          ()))
+      let interval =
+        Overrides_interval_tree.Interval.create ~low:5 ~high:0
+          ~payload:"invalid"
+      in
+      let is_ok = Result.is_ok interval in
+      check bool "should be equal" is_ok false)
 
 let test_find ~input ~expected =
   (*
@@ -86,7 +78,6 @@ let test_find_first =
 let cases =
   ( "overrides-interval-tree",
     [ test_of_alist_exn;
-      test_empty_list;
       test_invalid_interval;
       test_find ~input:0 ~expected:(Some "a");
       test_find ~input:1 ~expected:(Some "b");

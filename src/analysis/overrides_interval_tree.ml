@@ -1,9 +1,10 @@
 module Interval = struct
   type 'a t = { low : int; high : int; payload : 'a }
 
-  let create_exn ~low ~high ~payload =
-    if low > high then raise (Invalid_argument "input low greater than high")
-    else { low; high; payload }
+  let create ~low ~high ~payload =
+    match low <= high with
+    | true -> Ok { low; high; payload }
+    | false -> Error "input low greater than high"
 
   let compare_low t1 t2 = Int.compare t1.low t2.low
 
@@ -27,6 +28,8 @@ type 'a t =
     right : 'a t option;
     intervals : 'a Interval.t list
   }
+
+let empty = { center = -1; left = None; right = None; intervals = [] }
 
 (** Implementation based off of
     {{:https://en.wikipedia.org/wiki/Interval_tree#With_a_point}}this description.  *)
@@ -91,8 +94,8 @@ let rec of_alist_helper (lst : _ Interval.t list) =
     let intervals = to_overlap in
     Some { center = median; left; right; intervals }
 
-let of_alist_exn lst =
+let of_alist lst =
   let sorted_lst = List.stable_sort Interval.compare_low lst in
   match of_alist_helper sorted_lst with
   | Some tree -> tree
-  | None -> raise (Invalid_argument "input list is empty")
+  | None -> empty

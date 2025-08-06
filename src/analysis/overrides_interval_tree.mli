@@ -16,9 +16,9 @@
 module Interval : sig
   type 'a t
 
-  (** [low] is included in the range. [high] is excluded from the range. Raises if input
-      [low] > [high]. *)
-  val create_exn : low:int -> high:int -> payload:'a -> 'a t
+  (** [low] is included in the range. [high] is excluded from the range. Returns [Error] if
+      [low] > [high] *)
+  val create : low:int -> high:int -> payload:'a -> ('a t, string) result
 end
 
 type 'a t
@@ -30,6 +30,5 @@ type 'a t
     first. *)
 val find : 'a t -> int -> 'a option
 
-(** Constructs a ['a t] given a list of ['a Interval.t]. Runs in O(nlogn) time. Raises on
-    empty lists. *)
-val of_alist_exn : 'a Interval.t list -> 'a t
+(** Constructs a ['a t] given a list of ['a Interval.t]. Runs in O(nlogn) time. *)
+val of_alist : 'a Interval.t list -> 'a t

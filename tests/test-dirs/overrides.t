@@ -373,9 +373,17 @@ Attribute location should not affect functionality.
   > [@@@merlin.document
   >   [ { location =
   >         { loc_start =
-  >             { pos_fname = "attribute-at-top.ml"; pos_lnum = 31; pos_bol = 867; pos_cnum = 880 }
+  >             { pos_fname = "attribute-at-top.ml"
+  >             ; pos_lnum = 42
+  >             ; pos_bol = 1014
+  >             ; pos_cnum = 1027
+  >             }
   >         ; loc_end =
-  >             { pos_fname = "attribute-at-top.ml"; pos_lnum = 31; pos_bol = 867; pos_cnum = 887 }
+  >             { pos_fname = "attribute-at-top.ml"
+  >             ; pos_lnum = 42
+  >             ; pos_bol = 1014
+  >             ; pos_cnum = 1034
+  >             }
   >         ; loc_ghost = false
   >         }
   >     ; payload = "@add_one expands expressions with a '+ 1'"
@@ -385,25 +393,28 @@ Attribute location should not affect functionality.
   > [@@@merlin.locate
   >   [ { location =
   >         { loc_start =
-  >             { pos_fname = "attribute-at-top.ml"; pos_lnum = 31; pos_bol = 867; pos_cnum = 880 }
+  >             { pos_fname = "attribute-at-top.ml"
+  >             ; pos_lnum = 42
+  >             ; pos_bol = 1014
+  >             ; pos_cnum = 1027
+  >             }
   >         ; loc_end =
-  >             { pos_fname = "attribute-at-top.ml"; pos_lnum = 31; pos_bol = 867; pos_cnum = 887 }
+  >             { pos_fname = "attribute-at-top.ml"
+  >             ; pos_lnum = 42
+  >             ; pos_bol = 1014
+  >             ; pos_cnum = 1034
+  >             }
   >         ; loc_ghost = false
   >         }
   >     ; payload =
-  >         { pos_fname =
-  >             "test/ppx.ml"
-  >         ; pos_lnum = 53
-  >         ; pos_bol = 1612
-  >         ; pos_cnum = 1633
-  >         }
+  >         { pos_fname = "test/ppx.ml"; pos_lnum = 53; pos_bol = 1612; pos_cnum = 1633 }
   >     }
   >   ]]
   > 
   > let _ = (0 [@add_one]) + 2
   > EOF
 
-  $ test_merlin_overrides "31:13" "./attribute-at-top.ml"
+  $ test_merlin_overrides "42:13" "./attribute-at-top.ml"
   [merlin locate] output: {
     "file": "$TESTCASE_ROOT/test/ppx.ml",
     "pos": {
