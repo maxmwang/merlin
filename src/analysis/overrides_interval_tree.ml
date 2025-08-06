@@ -29,6 +29,7 @@ type 'a t =
     intervals : 'a Interval.t list
   }
 
+(** [empty] always returns [None] when [find] is called on it. *)
 let empty = { center = -1; left = None; right = None; intervals = [] }
 
 (** Implementation based off of

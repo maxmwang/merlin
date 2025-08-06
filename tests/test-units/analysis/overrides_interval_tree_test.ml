@@ -75,6 +75,14 @@ let test_find_first =
       let payload = Overrides_interval_tree.find tree 2 in
       check (option string) "should be equal" expected payload)
 
+let test_find_empty =
+  let tree = create_tree [] in
+  let open Alcotest in
+  test_case "test find on empty tree" `Quick (fun () ->
+      let expected = None in
+      let payload = Overrides_interval_tree.find tree 0 in
+      check (option string) "should be equal" expected payload)
+
 let cases =
   ( "overrides-interval-tree",
     [ test_of_alist_exn;
@@ -90,5 +98,6 @@ let cases =
       test_find ~input:8 ~expected:(Some "h");
       test_find ~input:9 ~expected:(Some "i");
       test_find ~input:10 ~expected:None;
-      test_find_first
+      test_find_first;
+      test_find_empty
     ] )
