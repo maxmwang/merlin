@@ -1,10 +1,14 @@
-let input_has_no_total_ordering =
-  Invalid_argument "input interval ranges do not follow a total ordering"
+let input_low_greater_than_high = Invalid_argument "input low greater than high"
+
+let input_invalid_interval_range =
+  Invalid_argument "input interval ranges has low greater than high"
 
 module Interval = struct
   type 'a t = { low : int; high : int; payload : 'a }
 
-  let create ~low ~high ~payload = { low; high; payload }
+  let create ~low ~high ~payload =
+    if low > high then raise input_low_greater_than_high
+    else { low; high; payload }
 
   let compare_low t1 t2 = Int.compare t1.low t2.low
 
@@ -75,7 +79,7 @@ let rec of_alist_helper (lst : _ Interval.t array) =
           | true, true -> (left_count + 1, overlap_count)
           | true, false -> (left_count, overlap_count + 1)
           | false, false -> (left_count, overlap_count)
-          | _ -> raise input_has_no_total_ordering)
+          | _ -> raise input_invalid_interval_range)
         (0, 0) lst
     in
     let right_count = length - left_count - overlap_count in
@@ -94,7 +98,7 @@ let rec of_alist_helper (lst : _ Interval.t array) =
         | false, false ->
           Array.set target !right_i interval;
           right_i := !right_i + 1
-        | _ -> raise input_has_no_total_ordering)
+        | _ -> raise input_invalid_interval_range)
       lst;
     let left = of_alist_helper (Array.sub target 0 left_count) in
     let right =

@@ -25,14 +25,15 @@ let test_construct =
       in
       ())
 
-let test_construct_no_total_order =
+let test_construct_no_total_order_actual =
   let open Alcotest in
-  test_case "test construction of intervals without total ordering" `Quick
-    (fun () ->
+  test_case "test construction of intervals without total ordering actual"
+    `Quick (fun () ->
       check_raises "should raise exn"
-        (Invalid_argument "input interval es do not follow a total ordering")
-        (fun () ->
-          let _ = create_intervals [ ((0, 3), "1"); ((1, 4), "2") ] in
+        (Invalid_argument "input low greater than high") (fun () ->
+          let _ =
+            create_intervals [ ((0, 3), "1"); ((1, 4), "2"); ((5, 0), "3") ]
+          in
           ()))
 
 let test_find ~input ~expected =
@@ -77,7 +78,8 @@ let test_find_first =
 let cases =
   ( "overrides-interval-tree",
     [ test_construct;
-      test_construct_no_total_order;
+      (*= test_construct_no_total_order; *)
+      test_construct_no_total_order_actual;
       test_find ~input:0 ~expected:(Some "1");
       test_find ~input:1 ~expected:(Some "2");
       test_find ~input:2 ~expected:(Some "0");

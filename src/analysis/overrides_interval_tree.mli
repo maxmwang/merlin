@@ -15,7 +15,8 @@
 module Interval : sig
   type 'a t
 
-  (** [low] is included in the range. [high] is excluded from the range. *)
+  (** [low] is included in the range. [high] is excluded from the range. Raises if input
+      [low] > [high]. *)
   val create : low:int -> high:int -> payload:'a -> 'a t
 end
 
