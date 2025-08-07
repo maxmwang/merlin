@@ -92,8 +92,7 @@ module Override = struct
   let payload t = t.payload
 
   let to_interval t =
-    Overrides_interval_tree.Interval.create ~low:t.loc.loc_start.pos_cnum
-      ~high:t.loc.loc_end.pos_cnum ~payload:t
+    Overrides_interval_tree.Interval.create ~loc:t.loc ~payload:t
 end
 
 type t = Override.t Overrides_interval_tree.t
@@ -152,5 +151,4 @@ let get_overrides ~attribute_name pipeline =
            None)
   |> Overrides_interval_tree.of_alist
 
-let find (t : t) ~(cursor : Lexing.position) =
-  Overrides_interval_tree.find t cursor.pos_cnum
+let find t ~cursor = Overrides_interval_tree.find t cursor

@@ -1,3 +1,4 @@
 (test
  (name analysis_test)
- (libraries alcotest merlin-lib.analysis))
+ (flags :standard -open Ocaml_parsing)
+ (libraries alcotest ocaml_parsing merlin-lib.analysis))
