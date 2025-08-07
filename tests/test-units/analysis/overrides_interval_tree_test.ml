@@ -54,13 +54,13 @@ let test_find ~input ~expected =
     ----------e----------
     ----d---- -----f-----
     ---b---   --g-- --h--
-    -a- -c-           -i-
+    -a- c             -i-
    *)
   let tree =
     create_tree
       [ ((0, 1), "a");
         ((0, 3), "b");
-        ((2, 3), "c");
+        ((2, 2), "c");
         ((0, 4), "d");
         ((0, 10), "e");
         ((5, 10), "f");
@@ -103,7 +103,7 @@ let cases =
       test_find ~input:0 ~expected:(Some "a");
       test_find ~input:1 ~expected:(Some "a");
       test_find ~input:2 ~expected:(Some "c");
-      test_find ~input:3 ~expected:(Some "c");
+      test_find ~input:3 ~expected:(Some "b");
       test_find ~input:4 ~expected:(Some "d");
       test_find ~input:5 ~expected:(Some "g");
       test_find ~input:6 ~expected:(Some "g");
