@@ -19,7 +19,7 @@ end
 
 type 'a t
 
-(** Find the tightest interval that contains a given integer point. Runs in O(logn + mlogm)
+(** Find the tightest interval that contains a given integer point. Runs in O(logn + m)
     where m is the number of intervals containing the point.
 
     [find] assumes that an interval is either contained by or contains every other interval.
