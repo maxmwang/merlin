@@ -89,14 +89,13 @@ module Override = struct
       Ok { loc = { Location.loc_start; loc_end; loc_ghost }; payload }
     | _ -> error_unexpected_merlin_override_attribute_structure
 
-  let is_target_override t ~cursor =
-    Lexing.compare_pos cursor t.loc.loc_start >= 0
-    && Lexing.compare_pos cursor t.loc.loc_end <= 0
-
   let payload t = t.payload
+
+  let to_interval t =
+    Overrides_interval_tree.Interval.create ~loc:t.loc ~payload:t
 end
 
-type t = Override.t list
+type t = Override.t Overrides_interval_tree.t
 
 let rec of_payload ~attribute_name ({ pexp_desc; _ } : Parsetree.expression) =
   match pexp_desc with
@@ -137,17 +136,19 @@ let get_overrides ~attribute_name pipeline =
             Some attr
           | _ -> None)
   in
-  List.concat_map attributes ~f:(fun attribute ->
-      match of_attribute ~attribute_name attribute with
-      | Ok overrides -> overrides
-      | Error err ->
-        log ~title:"get_overrides" "%s" err;
-        [])
+  attributes
+  |> List.concat_map ~f:(fun attribute ->
+         match of_attribute ~attribute_name attribute with
+         | Ok overrides -> overrides
+         | Error err ->
+           log ~title:"get_overrides" "%s" err;
+           [])
+  |> List.filter_map ~f:(fun (override : Override.t) ->
+         match Override.to_interval override with
+         | Ok interval -> Some interval
+         | Error err ->
+           log ~title:"get_overrides" "%s" err;
+           None)
+  |> Overrides_interval_tree.of_alist
 
-let find t ~cursor =
-  match List.find_all ~f:(Override.is_target_override ~cursor) t with
-  | [] -> None
-  | override :: [] -> Some override
-  | override :: _ :: _ ->
-    log ~title:"find" "found multiple target overrides, using first target";
-    Some override
+let find t ~cursor = Overrides_interval_tree.find t cursor

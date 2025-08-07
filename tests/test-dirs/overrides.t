@@ -232,6 +232,24 @@ Test overrides on %swap
   }
   [merlin document] output: %swap swaps the first two arguments of a function call
 
+Test overrides on last character of %swap
+
+  $ test_merlin_overrides "2:14" "./basic.ml"
+  [merlin locate] output: {
+    "file": "$TESTCASE_ROOT/test/ppx.ml",
+    "pos": {
+      "line": 12,
+      "col": 24
+    }
+  }
+  [merlin document] output: %swap swaps the first two arguments of a function call
+
+Test overrides one character to the right of %swap
+
+  $ test_merlin_overrides "2:15" "./basic.ml"
+  [merlin locate] output: Not in environment 'f'
+  [merlin document] output: Not in environment 'f'
+
 Test overrides on @add_one
 
   $ test_merlin_overrides "3:13" "./basic.ml"
