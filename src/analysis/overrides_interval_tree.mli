@@ -13,8 +13,7 @@
 module Interval : sig
   type 'a t
 
-  (** [low] is included in the range. [high] is excluded from the range. Returns [Error] if
-      [low] > [high] *)
+  (** [low] and [high] are included in the range. Returns [Error] if [low] > [high] *)
   val create : loc:Location.t -> payload:'a -> ('a t, string) result
 end
 
