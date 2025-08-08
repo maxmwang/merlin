@@ -93,7 +93,9 @@ type t =
     error_time : float ref;
     ppx_cache_hit : bool ref;
     reader_cache_hit : bool ref;
-    typer_cache_stats : Mtyper.typer_cache_stats ref
+    typer_cache_stats : Mtyper.typer_cache_stats ref;
+    document_overrides : string Overrides.t lazy_t;
+    locate_overrides : Lexing.position Overrides.t lazy_t
   }
 
 let raw_source t = t.raw_source
@@ -132,6 +134,9 @@ let final_config t = (ppx t).Ppx.config
 
 let typer_result t = (typer t).Typer.result
 let typer_errors t = Lazy.force (typer t).Typer.errors
+
+let document_overrides t = Lazy.force t.document_overrides
+let locate_overrides t = Lazy.force t.locate_overrides
 
 module Reader_phase = struct
   type t =
@@ -321,6 +326,18 @@ let process ?state ?(pp_time = ref 0.0) ?(reader_time = ref 0.0)
          typer_cache_stats := Mtyper.get_cache_stat result;
          { Typer.errors; result }))
   in
+  let document_overrides =
+    lazy
+      ((Lazy.force ppx).Ppx.parsetree
+      |> Overrides.get_overrides
+           ~attribute_name:Overrides.Attribute_name.Document)
+  in
+  let locate_overrides =
+    lazy
+      ((Lazy.force ppx).Ppx.parsetree
+      |> Overrides.get_overrides ~attribute_name:Overrides.Attribute_name.Locate
+      )
+  in
   { config;
     state;
     raw_source;
@@ -335,7 +352,9 @@ let process ?state ?(pp_time = ref 0.0) ?(reader_time = ref 0.0)
     error_time;
     ppx_cache_hit;
     reader_cache_hit;
-    typer_cache_stats
+    typer_cache_stats;
+    document_overrides;
+    locate_overrides
   }
 
 let make config source = process (Mconfig.normalize config) source
@@ -385,5 +404,9 @@ let cache_information t =
       ("typer", typer);
       ("cmt", cmt);
       ("cms", cms);
-      ("cmi", cmi)
+      ("cmi", cmi);
+      ( "document_overrides_forced",
+        `String (Bool.to_string (Lazy.is_val t.document_overrides)) );
+      ( "locate_overrides_forced",
+        `String (Bool.to_string (Lazy.is_val t.locate_overrides)) )
     ]
